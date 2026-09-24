@@ -1,5 +1,13 @@
 name: clang-format Check
-on: [push, pull_request]
+on:
+  push:
+    paths:
+      - 'OptiScaler/**'
+      - '.clang-format'
+  pull_request:
+    paths:
+      - 'OptiScaler/**'
+      - '.clang-format'
 jobs:
   formatting-check:
     name: Formatting Check

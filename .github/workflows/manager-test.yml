@@ -1,0 +1,26 @@
+name: Manager Tests
+
+on:
+  push:
+    paths:
+      - 'OptiScalerManager/**'
+      - 'upstreams.json'
+      - 'upstreams.lock.json'
+      - '.github/workflows/manager-test.yml'
+  pull_request:
+    paths:
+      - 'OptiScalerManager/**'
+      - 'upstreams.json'
+      - 'upstreams.lock.json'
+      - '.github/workflows/manager-test.yml'
+
+jobs:
+  test:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+      - name: Run manager tests
+        run: dotnet test OptiScalerManager/OptiScalerManager.sln -c Release
