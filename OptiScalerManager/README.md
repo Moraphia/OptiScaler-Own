@@ -36,4 +36,4 @@ For local installation testing, place a validated OptiScaler package under `Pack
 
 ## Upstream maintenance
 
-`upstreams.json` is the maintainer-owned dependency list. `tools/Check-Upstreams.ps1` compares commit or release references with `upstreams.lock.json` and writes `upstream-report.md`. GitHub Actions runs this check every six hours, opens a tracking PR, and publishes a reviewable nightly build.
+`upstreams.json` is the maintainer-owned dependency list. `tools/Check-Upstreams.ps1` can be run manually to compare commit or release references with `upstreams.lock.json` and write `upstream-report.md`. There is currently no scheduled upstream-check job or automatic tracking PR. The inherited scheduled build workflow is separate from dependency monitoring and is not the stable release channel. The lock file contains only some source dependencies, not a complete inventory of bundled runtime DLLs.
