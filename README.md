@@ -20,7 +20,7 @@
 
 - **OptiScaler 核心**：替换游戏已有的 DLSS、FSR、XeSS 等超分输入，提供图像设置、帧生成输入与输出配置。具体支持范围取决于游戏 API、显卡和运行库。
 - **MFG 扩展**：为部分 RTX 40 系列环境提供实验性的多帧生成解锁。是否达到 3×—6×，取决于游戏是否有可接入的帧生成管线、实际加载的 Streamline/DLSS-G 版本及显卡；不能只凭菜单选项保证生效。
-- **DLSS 5 Neural Rendering**：实验性桥接模块，必须由用户提供与环境兼容的 `nvngx_dlssnr.dll`；该 DLL **不包含在本项目的游戏包内**。高画质设置可能显著增加显存、功耗和帧时间。
+- **DLSS 5 Neural Rendering**：实验性桥接模块。游戏包包含 Aurora 社区发布的 `nvngx_dlssnr.dll` 310.8 和本分支编译的 `nvngx.dll_dlssnr.dll` 转发器；前者签名校验为 `HashMismatch`，不能视为 NVIDIA 官方签名原版。来源及哈希见下文。高画质设置可能显著增加显存、功耗和帧时间。
 - **OptiScaler Manager**：游戏发现、安装预览、备份与修复、状态检查、中文常用/专家配置以及稳定版更新。游戏内 `Insert` 菜单仍由 OptiScaler 提供，管理器并不取代它。
 
 这些扩展并非所有游戏或硬件都能使用。若遇到启动崩溃、Output/FG 加载失败或缺失 DLL，请先检查实际加载的代理文件、游戏自带运行库、游戏日志与 `OptiScaler.ini`，不要把游戏菜单里出现的选项视为功能已成功启用。
@@ -42,3 +42,5 @@ dotnet publish OptiScalerManager/OptiScalerManager.App/OptiScalerManager.App.csp
 ## 来源与许可
 
 OptiScaler 核心来自 [optiscaler/OptiScaler](https://github.com/optiscaler/OptiScaler)，MFG 与 Neural Rendering 移植参考了 [OptiScaler-Aurora](https://github.com/abc354402600/OptiScaler-Aurora) 及相关项目。第三方组件的著作权和许可仍归各自权利人；游戏包中的许可证随文件提供。本仓库主许可证见 [LICENSE](LICENSE)。如需向官方反馈问题，请先用官方原版复现；本分支特有问题请在此仓库提交 Issue。
+
+游戏包中的 `nvngx_dlssnr.dll` 与 [Aurora 运行库发布资产](https://github.com/abc354402600/OptiScaler-Aurora/releases/tag/aurora-runtime-dlssnr-310.8)逐字节哈希一致：SHA-256 `E67DEE209320CDAFE0E93E45675D7AA34323A53ACC57A72B2E40A181581C989A`。它是社区提供的兼容版本；签名校验不通过不代表它一定有恶意，但也不能据此保证来源与安全性。使用前请自行评估风险。

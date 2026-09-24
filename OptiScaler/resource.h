@@ -23,6 +23,11 @@
 #define VER_HOTFIX_VERSION 0
 #define VER_BUILD_NUMBER 1
 
+// Independent release channel; the upstream core version above is kept for compatibility.
+#define VER_OWN_RELEASE_MAJOR 0
+#define VER_OWN_RELEASE_MINOR 2
+#define VER_OWN_RELEASE_PATCH 2
+
 #define VER_DEV_RELEASE
 // #define VER_PRE_RELEASE
 
@@ -59,5 +64,5 @@
     STRINGIZE(VER_MAJOR_VERSION) "." STRINGIZE(VER_MINOR_VERSION) "." STRINGIZE(VER_HOTFIX_VERSION) "-final" VER_FORK_TAG " (" VER_BUILD_COMMIT ")"
 #endif // VER_PRE_RELEASE
 
-#define VER_PRODUCT_NAME "OptiScaler Own v" VER_PRODUCT_VERSION_STR
+#define VER_PRODUCT_NAME "OptiScaler Own by Moraphia v" VER_PRODUCT_VERSION_STR
 #endif // OPTISCALER_BUILD_METADATA

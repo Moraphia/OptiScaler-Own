@@ -24,7 +24,10 @@ struct LatestReleaseInfo
     std::string url;
 };
 
-feature_version CurrentVersion() { return { VER_MAJOR_VERSION, VER_MINOR_VERSION, VER_HOTFIX_VERSION }; }
+feature_version CurrentVersion()
+{
+    return { VER_OWN_RELEASE_MAJOR, VER_OWN_RELEASE_MINOR, VER_OWN_RELEASE_PATCH };
+}
 
 std::optional<LatestReleaseInfo> FetchLatestRelease()
 {
@@ -73,7 +76,7 @@ std::optional<LatestReleaseInfo> FetchLatestRelease()
         return std::nullopt;
     }
 
-    request = WinHttpOpenRequest(connection, L"GET", L"/repos/optiscaler/optiscaler/releases/latest", nullptr,
+    request = WinHttpOpenRequest(connection, L"GET", L"/repos/Moraphia/OptiScaler-Own/releases/latest", nullptr,
                                  WINHTTP_NO_REFERER, WINHTTP_DEFAULT_ACCEPT_TYPES, WINHTTP_FLAG_SECURE);
     if (request == nullptr)
     {
@@ -216,13 +219,13 @@ void RunVersionCheck()
 
     if (updateAvailable)
     {
-        LOG_WARN("New OptiScaler release available: {} (current {}.{}.{}).", release->tag, VER_MAJOR_VERSION,
-                 VER_MINOR_VERSION, VER_HOTFIX_VERSION);
+        LOG_WARN("New OptiScaler Own release available: {} (current {}.{}.{}).", release->tag,
+                 VER_OWN_RELEASE_MAJOR, VER_OWN_RELEASE_MINOR, VER_OWN_RELEASE_PATCH);
     }
     else
     {
-        LOG_INFO("OptiScaler is up to date (current {}.{}.{})", VER_MAJOR_VERSION, VER_MINOR_VERSION,
-                 VER_HOTFIX_VERSION);
+        LOG_INFO("OptiScaler Own is up to date (current {}.{}.{})", VER_OWN_RELEASE_MAJOR,
+                 VER_OWN_RELEASE_MINOR, VER_OWN_RELEASE_PATCH);
     }
 }
 } // namespace
@@ -230,7 +233,7 @@ void RunVersionCheck()
 const std::string& VersionCheck::CurrentVersionString()
 {
     static const std::string version =
-        std::format("{}.{}.{}", VER_MAJOR_VERSION, VER_MINOR_VERSION, VER_HOTFIX_VERSION);
+        std::format("{}.{}.{}", VER_OWN_RELEASE_MAJOR, VER_OWN_RELEASE_MINOR, VER_OWN_RELEASE_PATCH);
     return version;
 }
 
