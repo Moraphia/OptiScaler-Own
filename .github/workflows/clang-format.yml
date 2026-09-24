@@ -1,22 +1,35 @@
 name: clang-format Check
+
 on:
   push:
     paths:
       - 'OptiScaler/**'
       - '.clang-format'
+      - '.github/workflows/clang-format.yml'
+      - 'tools/check_changed_format.py'
   pull_request:
     paths:
       - 'OptiScaler/**'
       - '.clang-format'
+      - '.github/workflows/clang-format.yml'
+      - 'tools/check_changed_format.py'
+  workflow_dispatch:
+
 jobs:
   formatting-check:
     name: Formatting Check
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
-    - name: Run clang-format style check for C/C++/Protobuf programs.
-      uses: jidicula/clang-format-action@v4.18.0
-      with:
-        clang-format-version: '22'
-        check-path: 'OptiScaler'
-        exclude-regex: 'external/|OptiScaler/include/'
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install pinned clang-format
+        run: python -m pip install clang-format==22.1.0
+      - name: Check changed C++ lines
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
+          HEAD_SHA: ${{ github.sha }}
+        run: python tools/check_changed_format.py
