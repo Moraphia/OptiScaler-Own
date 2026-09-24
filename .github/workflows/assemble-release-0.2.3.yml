@@ -1,0 +1,18 @@
+name: Assemble v0.2.3 game package
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  assemble:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Assemble and upload the verified package to the draft release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: ./tools/Assemble-Release-0.2.3.ps1
