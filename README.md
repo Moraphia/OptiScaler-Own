@@ -41,6 +41,8 @@
 | 核心源码及 SDK | [`upstreams.json`](upstreams.json) 列有官方 OptiScaler、AMD FidelityFX、Intel XeSS、NVIDIA NVAPI、Streamline、DLSS、DLSS-Enabler、dlssg-to-fsr3；[`Check-Upstreams.ps1`](tools/Check-Upstreams.ps1) 可手动比对 GitHub commit/Release | 审阅上游变更，按需更新子模块、移植补丁、重新构建和游戏测试；**目前没有自动同步、自动 PR 或六小时定时检查** |
 | 随包二进制 | 当前未逐个自动检查文件版本、签名和兼容性；`upstreams.lock.json` 也不是完整运行库锁文件 | 分别记录 DLSS、DLSS-G、DLSSD、Streamline 插件、Neural Rendering DLL 的来源、文件版本、哈希与许可证，再决定是否换版 |
 
+游戏内 Insert 菜单仍有本分支版本的“新版可用”判断（将内置版本与本仓库最新稳定版 tag 比较）。管理器则主要显示最新 Release 和下载入口，**当前不会把本地已安装版本与远端版本逐一比较并标出哪些游戏文件已过期**；依赖矩阵也只是读取随管理器发布的静态锁文件，不会在界面里实时查询每个上游。
+
 截至 2026-09-24，游戏包的 `nvngx_dlss.dll` / `nvngx_dlssg.dll` / `nvngx_dlssd.dll` 文件版本均为 **310.9.0.0**；NVIDIA 已发布 [DLSS SDK 310.9.1](https://github.com/NVIDIA/DLSS/releases/tag/v310.9.1)。包内 `sl.*.dll` 则混有 **Streamline 2.12、2.13、2.14**；官方最新 Release 为 [2.14.1](https://github.com/NVIDIA-RTX/Streamline/releases/tag/v2.14.1)。这些是待评估的更新，**尚未自动集成到本版**。尤其 Streamline 应作为兼容性组合测试，不能仅凭版本号覆盖游戏原有 DLL；管理器的运行库同步功能也应先查看预览与备份。Neural Rendering 的 310.8 社区 DLL 独立于 NVIDIA 公开 DLSS SDK，不能拿 `nvngx_dlssd.dll`（Ray Reconstruction）代替。
 
 ## 自行构建
