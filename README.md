@@ -43,7 +43,13 @@
 
 游戏内 Insert 菜单仍有本分支版本的“新版可用”判断（将内置版本与本仓库最新稳定版 tag 比较）。管理器则主要显示最新 Release 和下载入口，**当前不会把本地已安装版本与远端版本逐一比较并标出哪些游戏文件已过期**；依赖矩阵也只是读取随管理器发布的静态锁文件，不会在界面里实时查询每个上游。
 
-截至 2026-09-24，游戏包的 `nvngx_dlss.dll` / `nvngx_dlssg.dll` / `nvngx_dlssd.dll` 文件版本均为 **310.9.0.0**；NVIDIA 已发布 [DLSS SDK 310.9.1](https://github.com/NVIDIA/DLSS/releases/tag/v310.9.1)。包内 `sl.*.dll` 则混有 **Streamline 2.12、2.13、2.14**；官方最新 Release 为 [2.14.1](https://github.com/NVIDIA-RTX/Streamline/releases/tag/v2.14.1)。这些是待评估的更新，**尚未自动集成到本版**。尤其 Streamline 应作为兼容性组合测试，不能仅凭版本号覆盖游戏原有 DLL；管理器的运行库同步功能也应先查看预览与备份。Neural Rendering 的 310.8 社区 DLL 独立于 NVIDIA 公开 DLSS SDK，不能拿 `nvngx_dlssd.dll`（Ray Reconstruction）代替。
+截至 2026-09-24，v0.2.3 将 `nvngx_dlss.dll` / `nvngx_dlssg.dll` / `nvngx_dlssd.dll` 更新为 NVIDIA 官方 **310.9.1.0**，并将公开 SDK 提供的 11 个 Streamline 插件更新为 [2.14.1](https://github.com/NVIDIA-RTX/Streamline/releases/tag/v2.14.1)。该 SDK **没有** `sl.dlss_nr.dll`，因此包内仍保留原 2.13 插件和社区 `nvngx_dlssnr.dll` 310.8。此组合在 GTA V Enhanced 的单机故事模式完成一次人工测试，RTX 4080 Super 用户确认 6× 生效；不能保证其他游戏兼容，更新游戏原有运行库前应预览并备份。Neural Rendering 的 310.8 社区 DLL 独立于 [NVIDIA 公开 DLSS SDK](https://github.com/NVIDIA/DLSS/releases/tag/v310.9.1)，不能拿 `nvngx_dlssd.dll`（Ray Reconstruction）代替。
+
+### 老游戏 Streamline 与无原生 FG 的游戏
+
+安装管理器的运行库同步默认启用，但只查找**已经存在**的同名游戏运行库并备份后更新；发现 `sl.*.dll` 为 Streamline **1.x 或无法识别主版本**时，会跳过该文件，不把它硬替换成 2.14.1。游戏自身仍可使用它的旧 Streamline；OptiScaler 的 `FGOutput=dlssg` 则从 `OptiScaler/streamline/` 加载私有副本。两套运行库共存不代表游戏的旧 1.x FG 输入自动获得 6×，也不保证不冲突；游戏更新后可用管理器手动检查/修复，当前没有 Aurora 的 `Check_DLSS_Runtime.bat` 式单独重检脚本。对可识别的 Streamline 2.x，同步可能替换游戏已有文件，安装前务必看预览。
+
+没有原生 FG 的游戏应先确认是否有可接入的超分输入：DX12 游戏可尝试实验性的 `FGInput=upscaler`（OptiFG）配 FSR-FG/XeFG；这**不是** NVIDIA 原生 6× MFG。原版《艾尔登法环》既没有原生超分也没有原生 FG，单独复制本包不能生成输入；社区 ERSS-FG 等游戏集成可提供 DLSSG via Streamline 输入，但能否稳定达到 6×还需逐游戏验证。请仅在不受反作弊保护的单机环境尝试，不要绕过反作弊。
 
 ## 自行构建
 

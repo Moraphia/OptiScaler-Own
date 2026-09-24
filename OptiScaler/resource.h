@@ -26,7 +26,7 @@
 // Independent release channel; the upstream core version above is kept for compatibility.
 #define VER_OWN_RELEASE_MAJOR 0
 #define VER_OWN_RELEASE_MINOR 2
-#define VER_OWN_RELEASE_PATCH 2
+#define VER_OWN_RELEASE_PATCH 3
 
 #define VER_DEV_RELEASE
 // #define VER_PRE_RELEASE
