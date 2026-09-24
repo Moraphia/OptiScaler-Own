@@ -2,7 +2,7 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="OptiScaler 配置" Width="1040" Height="760" MinWidth="820" MinHeight="560"
-        WindowStartupLocation="CenterOwner" Background="{StaticResource PageBackground}">
+        WindowStartupLocation="CenterOwner" Background="{StaticResource PageBackground}" Foreground="{StaticResource TextPrimary}" FontFamily="Segoe UI Variable Text, Segoe UI">
     <Grid Margin="28">
         <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
         <Grid Grid.Row="0" Margin="0,0,0,18">
@@ -39,7 +39,7 @@
                 </ScrollViewer>
             </TabItem>
             <TabItem Header="专家设置（全部 INI 项）" Padding="14,8">
-                <Grid Margin="0,18,0,0"><Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions><TextBlock Text="编辑 Value 列后点击保存；未知配置项和注释会保留。" Foreground="{StaticResource TextSecondary}" Margin="0,0,0,10"/><DataGrid x:Name="EntriesGrid" Grid.Row="1" AutoGenerateColumns="False" CanUserAddRows="False" HeadersVisibility="Column" Background="#0F1726" BorderBrush="{StaticResource PanelBorder}" Foreground="{StaticResource TextPrimary}" RowBackground="#111827" AlternatingRowBackground="#0E1624"><DataGrid.Columns><DataGridTextColumn Header="Section" Binding="{Binding Section}" IsReadOnly="True" Width="180"/><DataGridTextColumn Header="Key" Binding="{Binding Key}" IsReadOnly="True" Width="260"/><DataGridTextColumn Header="Value" Binding="{Binding Value, UpdateSourceTrigger=PropertyChanged}" Width="*"/></DataGrid.Columns></DataGrid></Grid>
+                <Grid Margin="0,18,0,0"><Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions><TextBlock Text="编辑 Value 列后点击保存；未知配置项和注释会保留。" Foreground="{StaticResource TextSecondary}" Margin="0,0,0,10"/><DataGrid x:Name="EntriesGrid" Grid.Row="1" AutoGenerateColumns="False" CanUserAddRows="False" HeadersVisibility="Column" Background="{StaticResource PanelBackground}" BorderBrush="{StaticResource PanelBorder}" Foreground="{StaticResource TextPrimary}" RowBackground="#1B1E23" AlternatingRowBackground="#20242A"><DataGrid.Columns><DataGridTextColumn Header="Section" Binding="{Binding Section}" IsReadOnly="True" Width="180"/><DataGridTextColumn Header="Key" Binding="{Binding Key}" IsReadOnly="True" Width="260"/><DataGridTextColumn Header="Value" Binding="{Binding Value, UpdateSourceTrigger=PropertyChanged}" Width="*"/></DataGrid.Columns></DataGrid></Grid>
             </TabItem>
         </TabControl>
         <TextBlock x:Name="StatusText" Grid.Row="2" Foreground="{StaticResource TextSecondary}" VerticalAlignment="Center" Margin="0,18,0,0"/>

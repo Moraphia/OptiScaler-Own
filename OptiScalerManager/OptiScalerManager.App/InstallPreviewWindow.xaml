@@ -10,7 +10,7 @@
             <TextBlock Text="安装预览" FontSize="25" FontWeight="SemiBold" />
             <TextBlock x:Name="Subtitle" Foreground="{StaticResource TextSecondary}" Margin="0,5,0,0" />
         </StackPanel>
-        <Border Grid.Row="1" Background="#382A18" BorderBrush="#80623A" BorderThickness="1" CornerRadius="9" Padding="14" Margin="0,22,0,14">
+        <Border Grid.Row="1" Background="#30291F" BorderBrush="#6D5940" BorderThickness="1" CornerRadius="6" Padding="14" Margin="0,22,0,14">
             <StackPanel Orientation="Horizontal">
                 <TextBlock Text="注意" Foreground="{StaticResource Warning}" FontWeight="Bold" Margin="0,0,12,0" />
                 <TextBlock x:Name="WarningText" TextWrapping="Wrap" Foreground="#E9D6B2" />
@@ -21,9 +21,9 @@
             <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
             <TextBlock x:Name="Summary" FontSize="14" FontWeight="SemiBold" />
             <TextBlock Grid.Column="1" Text="目标：游戏根目录" Foreground="{StaticResource TextSecondary}" FontSize="11" />
-            <Border Grid.Row="1" Grid.ColumnSpan="2" Background="#10161F" BorderBrush="{StaticResource PanelBorder}" BorderThickness="1" CornerRadius="10" Padding="12" Margin="0,10,0,0">
+            <Border Grid.Row="1" Grid.ColumnSpan="2" Background="{StaticResource PanelBackground}" BorderBrush="{StaticResource PanelBorder}" BorderThickness="1" CornerRadius="6" Padding="12" Margin="0,10,0,0">
                 <ListBox x:Name="FilesList" BorderThickness="0" Background="Transparent" Foreground="{StaticResource TextPrimary}" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
-                    <ListBox.ItemTemplate><DataTemplate><Grid Margin="2,5"><Grid.ColumnDefinitions><ColumnDefinition Width="90"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions><Border Background="#19352F" CornerRadius="4" Padding="7,3" HorizontalAlignment="Left"><TextBlock Text="{Binding Action}" Foreground="{StaticResource Success}" FontSize="10" FontWeight="Bold" /></Border><StackPanel Grid.Column="1" Margin="12,0,0,0"><TextBlock Text="{Binding Destination}" TextTrimming="CharacterEllipsis" /><TextBlock Text="{Binding Detail}" Foreground="{StaticResource TextSecondary}" FontSize="10" Margin="0,2,0,0" /></StackPanel></Grid></DataTemplate></ListBox.ItemTemplate>
+                    <ListBox.ItemTemplate><DataTemplate><Grid Margin="2,5"><Grid.ColumnDefinitions><ColumnDefinition Width="90"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions><Border Background="#294037" CornerRadius="4" Padding="7,3" HorizontalAlignment="Left"><TextBlock Text="{Binding Action}" Foreground="{StaticResource Success}" FontSize="11" FontWeight="SemiBold" /></Border><StackPanel Grid.Column="1" Margin="12,0,0,0"><TextBlock Text="{Binding Destination}" TextTrimming="CharacterEllipsis" /><TextBlock Text="{Binding Detail}" Foreground="{StaticResource TextSecondary}" FontSize="11" Margin="0,2,0,0" /></StackPanel></Grid></DataTemplate></ListBox.ItemTemplate>
                 </ListBox>
             </Border>
         </Grid>
