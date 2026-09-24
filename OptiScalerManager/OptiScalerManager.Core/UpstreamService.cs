@@ -48,7 +48,7 @@ public sealed class UpstreamService
             if (!lockMap.TryGetValue(definition.Id, out var locked))
                 return new UpstreamStatus(definition.Id, definition.Repository, definition.UpdatePolicy, definition.License, definition.RedistributionPolicy, "—", "待 CI 检查", null);
             var unavailable = string.IsNullOrWhiteSpace(locked.Version) || locked.Version.Equals("unavailable", StringComparison.OrdinalIgnoreCase);
-            return new UpstreamStatus(definition.Id, definition.Repository, definition.UpdatePolicy, definition.License, definition.RedistributionPolicy, unavailable ? "不可用" : ShortVersion(locked.Version), unavailable ? "查询失败" : "已锁定", locked.CheckedAt);
+            return new UpstreamStatus(definition.Id, definition.Repository, definition.UpdatePolicy, definition.License, definition.RedistributionPolicy, unavailable ? "不可用" : ShortVersion(locked.Version), unavailable ? "查询失败" : locked.CheckedAt is null ? "记录未注明时间" : "已记录", locked.CheckedAt);
         }).ToList();
     }
 

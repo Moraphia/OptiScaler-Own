@@ -1,0 +1,13 @@
+{
+  "submodules": [
+    { "path": "external/FidelityFX-SDK", "repository": "GPUOpen-LibrariesAndSDKs/FidelityFX-SDK", "commit": "c6efa6bf7f2027b3ec94f28578bb5965eabb9e55" },
+    { "path": "external/FidelityFX-SDK-v2", "repository": "GPUOpen-LibrariesAndSDKs/FidelityFX-SDK", "commit": "60f4ea81909200d8542eca14dccb2628b763a9a3" },
+    { "path": "external/magic_enum", "repository": "Neargye/magic_enum", "commit": "a733a2ea665ca5d72b7270f0334bf2e7b82bd0cc" },
+    { "path": "external/nvapi", "repository": "NVIDIA/nvapi", "commit": "9b181ea572f680327fe01a14a0f1f41c78034104" },
+    { "path": "external/simpleini", "repository": "brofield/simpleini", "commit": "6048871ea9ee0ec24be5bd099d161a10567d7dc2" },
+    { "path": "external/spdlog", "repository": "gabime/spdlog", "commit": "faa0a7a9c5a3550ed5461fab7d8e31c37fd1a2ef" },
+    { "path": "external/unordered_dense", "repository": "martinus/unordered_dense", "commit": "73f3cbb237e84d483afafc743f1f14ec53e12314" },
+    { "path": "external/vulkan", "repository": "KhronosGroup/Vulkan-Headers", "commit": "d64e9e156ac818c19b722ca142230b68e3daafe3" },
+    { "path": "external/xess", "repository": "intel/xess", "commit": "8fe81bdbbaf00b3c1b733fd0d830c333dc84e6f0" }
+  ]
+}

@@ -18,8 +18,6 @@ public partial class UpdateWindow : Window
     private readonly string _managerVersion = FileVersionInfo.GetVersionInfo(Path.Combine(AppContext.BaseDirectory, "OptiScalerManager.exe")).FileVersion ?? "未知";
     private string? _localPackageVersion;
 
-    private sealed record BundledRuntime(string Name, string Files, string Version, string Source, string Note);
-
     public UpdateWindow()
     {
         InitializeComponent();
@@ -44,13 +42,19 @@ public partial class UpdateWindow : Window
     private async Task LoadDependenciesAsync()
     {
         var root = AppContext.BaseDirectory;
-        DependencyGrid.ItemsSource = await new UpstreamService().LoadMatrixAsync(Path.Combine(root, "upstreams.json"), Path.Combine(root, "upstreams.lock.json"));
-        var runtimePath = Path.Combine(root, "bundled-runtimes.json");
-        if (File.Exists(runtimePath))
+        try
         {
-            using var runtimes = JsonDocument.Parse(await File.ReadAllTextAsync(runtimePath));
-            RuntimeGrid.ItemsSource = JsonSerializer.Deserialize<List<BundledRuntime>>(runtimes.RootElement.GetProperty("runtimes").GetRawText(), new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+            var inventory = await DependencyInventoryService.LoadAsync(Path.Combine(root, "dependency-inventory.json"));
+            InventorySummary.Text = $"正式游戏包 v{inventory.PackageVersion} · DLL {inventory.Files.Count} 个 · 包 SHA-256 {inventory.PackageSha256}";
+            RuntimeGrid.ItemsSource = inventory.Files;
+            var submodules = await DependencyInventoryService.LoadSubmodulesAsync(Path.Combine(root, "source-submodules.json"));
+            SubmoduleSummary.Text = $"源码 Git 子模块 {submodules.Count} 个；这里的 commit 是构建所用 gitlink，不是上游最新版本。";
+            SubmoduleGrid.ItemsSource = submodules;
+            var upstreams = await new UpstreamService().LoadMatrixAsync(Path.Combine(root, "upstreams.json"), Path.Combine(root, "upstreams.lock.json"));
+            UpstreamSummary.Text = $"外部追踪 {upstreams.Count} 项；记录版本不是包内 DLL 版本，未标时间的记录不能判定是否有更新。";
+            DependencyGrid.ItemsSource = upstreams;
         }
+        catch (Exception ex) { InventorySummary.Text = $"依赖清单加载失败：{ex.Message}"; }
     }
 
     private static async Task<string?> ReadLocalPackageVersionAsync()

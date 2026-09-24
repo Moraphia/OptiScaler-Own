@@ -1,9 +1,78 @@
 {
-  "checkedAt": null,
-  "upstreams": [
-    { "id": "optiscaler", "repository": "optiscaler/OptiScaler", "ref": "master", "policy": "commit", "version": "6ded74bfa4fbb932fda7184c1263fc45380d5b1d", "url": "https://github.com/optiscaler/OptiScaler/commit/6ded74bfa4fbb932fda7184c1263fc45380d5b1d" },
-    { "id": "fidelityfx-sdk", "repository": "GPUOpen-LibrariesAndSDKs/FidelityFX-SDK", "ref": "main", "policy": "commit", "version": "60f4ea81909200d8542eca14dccb2628b763a9a3", "url": "https://github.com/GPUOpen-LibrariesAndSDKs/FidelityFX-SDK/commit/60f4ea81909200d8542eca14dccb2628b763a9a3" },
-    { "id": "xess", "repository": "intel/xess", "ref": "master", "policy": "commit", "version": "8fe81bdbbaf00b3c1b733fd0d830c333dc84e6f0", "url": "https://github.com/intel/xess/commit/8fe81bdbbaf00b3c1b733fd0d830c333dc84e6f0" },
-    { "id": "nvapi", "repository": "NVIDIA/nvapi", "ref": "main", "policy": "commit", "version": "9b181ea572f680327fe01a14a0f1f41c78034104", "url": "https://github.com/NVIDIA/nvapi/commit/9b181ea572f680327fe01a14a0f1f41c78034104" }
-  ]
+    "schemaVersion":  1,
+    "checkedAt":  "2026-09-24T10:07:22.1726663Z",
+    "upstreams":  [
+                      {
+                          "id":  "optiscaler",
+                          "repository":  "optiscaler/OptiScaler",
+                          "ref":  "master",
+                          "policy":  "commit",
+                          "version":  "6ded74bfa4fbb932fda7184c1263fc45380d5b1d",
+                          "url":  "https://github.com/optiscaler/OptiScaler/commit/6ded74bfa4fbb932fda7184c1263fc45380d5b1d",
+                          "checkedAt":  "2026-09-24T10:07:16.8282483Z"
+                      },
+                      {
+                          "id":  "fidelityfx-sdk",
+                          "repository":  "GPUOpen-LibrariesAndSDKs/FidelityFX-SDK",
+                          "ref":  "main",
+                          "policy":  "commit",
+                          "version":  "60f4ea81909200d8542eca14dccb2628b763a9a3",
+                          "url":  "https://github.com/GPUOpen-LibrariesAndSDKs/FidelityFX-SDK/commit/60f4ea81909200d8542eca14dccb2628b763a9a3",
+                          "checkedAt":  "2026-09-24T10:07:19.7693160Z"
+                      },
+                      {
+                          "id":  "xess",
+                          "repository":  "intel/xess",
+                          "ref":  "master",
+                          "policy":  "release",
+                          "version":  "v3.0.2",
+                          "url":  "https://github.com/intel/xess/releases/tag/v3.0.2",
+                          "checkedAt":  "2026-09-24T10:07:20.1306977Z"
+                      },
+                      {
+                          "id":  "nvapi",
+                          "repository":  "NVIDIA/nvapi",
+                          "ref":  "main",
+                          "policy":  "commit",
+                          "version":  "70d337db9186e968eab622f7e786de7e437faf3d",
+                          "url":  "https://github.com/NVIDIA/nvapi/commit/70d337db9186e968eab622f7e786de7e437faf3d",
+                          "checkedAt":  "2026-09-24T10:07:20.6506246Z"
+                      },
+                      {
+                          "id":  "streamline",
+                          "repository":  "NVIDIA-RTX/Streamline",
+                          "ref":  "main",
+                          "policy":  "release",
+                          "version":  "v2.14.1",
+                          "url":  "https://github.com/NVIDIA-RTX/Streamline/releases/tag/v2.14.1",
+                          "checkedAt":  "2026-09-24T10:07:20.9930243Z"
+                      },
+                      {
+                          "id":  "dlss",
+                          "repository":  "NVIDIA/DLSS",
+                          "ref":  "main",
+                          "policy":  "release",
+                          "version":  "v310.9.1",
+                          "url":  "https://github.com/NVIDIA/DLSS/releases/tag/v310.9.1",
+                          "checkedAt":  "2026-09-24T10:07:21.3921752Z"
+                      },
+                      {
+                          "id":  "dlss-enabler",
+                          "repository":  "artur-graniszewski/DLSS-Enabler",
+                          "ref":  "main",
+                          "policy":  "release",
+                          "version":  "v0.9.4",
+                          "url":  "https://github.com/artur-graniszewski/DLSS-Enabler/releases/tag/v0.9.4",
+                          "checkedAt":  "2026-09-24T10:07:21.8206891Z"
+                      },
+                      {
+                          "id":  "dlssg-to-fsr3",
+                          "repository":  "Nukem9/dlssg-to-fsr3",
+                          "ref":  "master",
+                          "policy":  "release",
+                          "version":  "0.130",
+                          "url":  "https://github.com/Nukem9/dlssg-to-fsr3/releases/tag/0.130",
+                          "checkedAt":  "2026-09-24T10:07:22.1594324Z"
+                      }
+                  ]
 }

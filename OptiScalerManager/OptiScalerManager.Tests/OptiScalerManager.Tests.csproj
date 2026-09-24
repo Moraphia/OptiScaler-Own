@@ -12,4 +12,8 @@
     <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2" />
   </ItemGroup>
   <ItemGroup><ProjectReference Include="..\OptiScalerManager.Core\OptiScalerManager.Core.csproj" /></ItemGroup>
+  <ItemGroup>
+    <None Include="..\OptiScalerManager.App\dependency-inventory.json" Link="dependency-inventory.json" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\OptiScalerManager.App\source-submodules.json" Link="source-submodules.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
 </Project>

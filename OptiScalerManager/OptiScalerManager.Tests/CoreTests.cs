@@ -5,6 +5,21 @@ namespace OptiScalerManager.Tests;
 
 public sealed class CoreTests : IDisposable
 {
+    [Fact]
+    public async Task DependencyInventory_CoversReleaseDllsAndSourceSubmodules()
+    {
+        var directory = AppContext.BaseDirectory;
+        var inventory = await OptiScalerManager.Core.DependencyInventoryService.LoadAsync(Path.Combine(directory, "dependency-inventory.json"));
+        var modules = await OptiScalerManager.Core.DependencyInventoryService.LoadSubmodulesAsync(Path.Combine(directory, "source-submodules.json"));
+        Assert.Equal("0.2.3", inventory.PackageVersion);
+        Assert.Equal(28, inventory.Files.Count);
+        Assert.Equal(9, modules.Count);
+        Assert.Contains(inventory.Files, x => x.Path == "OptiScaler/nvngx_dlssnr.dll" && x.Signature == "HashMismatch");
+        Assert.Contains(inventory.Files, x => x.Path == "nvngx.dll_dlssnr.dll" && x.Version == "not specified");
+        Assert.Contains(inventory.Files, x => x.Path == "OptiScaler/streamline/sl.dlss_nr.dll" && x.Version == "2.13.0.0");
+        Assert.Contains(modules, x => x.Path == "external/FidelityFX-SDK-v2");
+    }
+
     [Theory]
     [InlineData("0.2.2.0", "v0.2.3", true, "需要更新")]
     [InlineData("0.2.3.0", "v0.2.3", true, "已是最新")]

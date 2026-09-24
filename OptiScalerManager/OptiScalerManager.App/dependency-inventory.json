@@ -1,0 +1,203 @@
+﻿{
+    "packageVersion":  "0.2.3",
+    "packageSha256":  "C1117E937B0D2A593D80F71106F3A33A2D83491E91FF6E94F3514784CF408D36",
+    "dllCount":  28,
+    "files":  [
+                  {
+                      "path":  "nvngx.dll_dlssnr.dll",
+                      "version":  "not specified",
+                      "source":  "This repository (built from source)",
+                      "signature":  "NotSigned",
+                      "sha256":  "0D96A260B98F51F32E5C0773CD2C04A90479FDD861BD668D48C1124DC676277F"
+                  },
+                  {
+                      "path":  "OptiScaler.dll",
+                      "version":  "10.0.0.1",
+                      "source":  "This repository (built from source)",
+                      "signature":  "NotSigned",
+                      "sha256":  "6B6598F5F03386970A5C1CD6B07516F3B955CF4D43A631792F19F314783AF499"
+                  },
+                  {
+                      "path":  "OptiScaler/amd_fidelityfx_framegeneration_dx12.dll",
+                      "version":  "4.0.1.2740",
+                      "source":  "AMD FidelityFX runtime",
+                      "signature":  "Valid",
+                      "sha256":  "02297BEEDD285E822D3A64F314CF00FAF378DCEC0EDC47FF0C4DD71B3A8C2F18"
+                  },
+                  {
+                      "path":  "OptiScaler/amd_fidelityfx_loader_dx12.dll",
+                      "version":  "2.3.0.2740",
+                      "source":  "AMD FidelityFX runtime",
+                      "signature":  "Valid",
+                      "sha256":  "E2D85AA05A9BD9ED8B38935FDF5199372CCA6F74C12015143BB6F945EE1608AA"
+                  },
+                  {
+                      "path":  "OptiScaler/amd_fidelityfx_upscaler_dx12.dll",
+                      "version":  "4.1.1.2740",
+                      "source":  "AMD FidelityFX runtime",
+                      "signature":  "Valid",
+                      "sha256":  "D0DCCCC74A43C44BA435B7A369B456E0970D8A4464E4BD683119B374F2C9FB46"
+                  },
+                  {
+                      "path":  "OptiScaler/amd_fidelityfx_vk.dll",
+                      "version":  "1.0.1.41314",
+                      "source":  "AMD FidelityFX runtime",
+                      "signature":  "Valid",
+                      "sha256":  "A1624CC4238FEF046F30C4D80CE3F47BE63FC5F5373F49E3EE9EDB9960F54C78"
+                  },
+                  {
+                      "path":  "OptiScaler/D3D12_OptiScaler/D3D12Core.dll",
+                      "version":  "1.615.1.0.20250213.1",
+                      "source":  "Microsoft D3D12Core",
+                      "signature":  "Valid",
+                      "sha256":  "07D286C306F8117321422AFFD9E6388C12D0FB4BE1C7FC689D9E899324FEEB24"
+                  },
+                  {
+                      "path":  "OptiScaler/dlssg_to_fsr3_amd_is_better.dll",
+                      "version":  "not specified",
+                      "source":  "Nukem dlssg-to-fsr3 compatibility binary",
+                      "signature":  "NotSigned",
+                      "sha256":  "806020C0444F7841A3A9F661295C16FC482E981E0666D0B9624BF6CCD19C4B5E"
+                  },
+                  {
+                      "path":  "OptiScaler/libxell.dll",
+                      "version":  "1.3.2.10",
+                      "source":  "Intel XeSS / XeLL runtime",
+                      "signature":  "Valid",
+                      "sha256":  "D2030DCD694FDA8F2EC7E044B13E6DB8F0B56D4BA9113A5EFAD334E3F3DED8C7"
+                  },
+                  {
+                      "path":  "OptiScaler/libxess.dll",
+                      "version":  "2.0.2.68",
+                      "source":  "Intel XeSS / XeLL runtime",
+                      "signature":  "Valid",
+                      "sha256":  "251659DD84A3E84DE67C886A4186E01F3ECA49B00641906FE38BB6B807E5D5B7"
+                  },
+                  {
+                      "path":  "OptiScaler/libxess_dx11.dll",
+                      "version":  "2.0.2.68",
+                      "source":  "Intel XeSS / XeLL runtime",
+                      "signature":  "Valid",
+                      "sha256":  "C7CFE86F0C9D94E4FB3696D3CD5035E2BBB6A8B1B0572F8B7395A4CDFD0C625E"
+                  },
+                  {
+                      "path":  "OptiScaler/libxess_fg.dll",
+                      "version":  "1.3.1.78",
+                      "source":  "Intel XeSS / XeLL runtime",
+                      "signature":  "Valid",
+                      "sha256":  "EC5E0C65E075570C6EDE72618BB666D0BE0C2E10B2EA9762C0FE8CB8E375AB27"
+                  },
+                  {
+                      "path":  "OptiScaler/nvngx_dlss.dll",
+                      "version":  "310.9.1.0",
+                      "source":  "NVIDIA DLSS / Streamline 310.9.1",
+                      "signature":  "Valid",
+                      "sha256":  "3975567B8943C53ACCE397F2B72380092F84F162D00B0D2C7D08A1025C563983"
+                  },
+                  {
+                      "path":  "OptiScaler/nvngx_dlssd.dll",
+                      "version":  "310.9.1.0",
+                      "source":  "NVIDIA DLSS / Streamline 310.9.1",
+                      "signature":  "Valid",
+                      "sha256":  "4BC7EA5FCB2F32CF86BC2CB072E8D2860914A0BE511CBDCB2FC206C1D9D83B80"
+                  },
+                  {
+                      "path":  "OptiScaler/nvngx_dlssg.dll",
+                      "version":  "310.9.1.0",
+                      "source":  "NVIDIA DLSS / Streamline 310.9.1",
+                      "signature":  "Valid",
+                      "sha256":  "FF6E90EB78B827927DFF5B4ECC6B1C870C2E9BCA29ED9F48C7D348CC9E170B82"
+                  },
+                  {
+                      "path":  "OptiScaler/nvngx_dlssnr.dll",
+                      "version":  "310.8.0.0",
+                      "source":  "Aurora community binary; modified signature",
+                      "signature":  "HashMismatch",
+                      "sha256":  "E67DEE209320CDAFE0E93E45675D7AA34323A53ACC57A72B2E40A181581C989A"
+                  },
+                  {
+                      "path":  "OptiScaler/streamline/sl.common.dll",
+                      "version":  "2.14.1.0",
+                      "source":  "NVIDIA Streamline 2.14.1",
+                      "signature":  "Valid",
+                      "sha256":  "82924A8954DD671E09351C5DE0EB87AD0EB25B944CC9F9AB955CA1D9950DE15D"
+                  },
+                  {
+                      "path":  "OptiScaler/streamline/sl.deepdvc.dll",
+                      "version":  "2.14.1.0",
+                      "source":  "NVIDIA Streamline 2.14.1",
+                      "signature":  "Valid",
+                      "sha256":  "E4B7E83C9E67EAB7023222AF13DE239241E8A09BDB63FAF26F803E9FD0F3E9C9"
+                  },
+                  {
+                      "path":  "OptiScaler/streamline/sl.directsr.dll",
+                      "version":  "2.14.1.0",
+                      "source":  "NVIDIA Streamline 2.14.1",
+                      "signature":  "Valid",
+                      "sha256":  "4B2C0C90195C3A9991B4E0B59004113511A90802C85D81FC7FAA7C7C75F53927"
+                  },
+                  {
+                      "path":  "OptiScaler/streamline/sl.dlss.dll",
+                      "version":  "2.14.1.0",
+                      "source":  "NVIDIA Streamline 2.14.1",
+                      "signature":  "Valid",
+                      "sha256":  "73BF52C0CFAA5900A8F3F4A91306E4625E7CCA696DFB305AAE44C9F97B582E1F"
+                  },
+                  {
+                      "path":  "OptiScaler/streamline/sl.dlss_d.dll",
+                      "version":  "2.14.1.0",
+                      "source":  "NVIDIA Streamline 2.14.1",
+                      "signature":  "Valid",
+                      "sha256":  "026B9F4F9EA848F2F5AA0E2024FC6B1C885F57EEA5D41078124DBA14F873B86B"
+                  },
+                  {
+                      "path":  "OptiScaler/streamline/sl.dlss_g.dll",
+                      "version":  "2.14.1.0",
+                      "source":  "NVIDIA Streamline 2.14.1",
+                      "signature":  "Valid",
+                      "sha256":  "F4A6B2B14DCC0B1485989E430D3B4E3A44AC1800B92BA1AD74F476E64FB2B09C"
+                  },
+                  {
+                      "path":  "OptiScaler/streamline/sl.dlss_nr.dll",
+                      "version":  "2.13.0.0",
+                      "source":  "Retained from v0.2.2; NVIDIA Streamline 2.13",
+                      "signature":  "Valid",
+                      "sha256":  "9F6672E5E0170DC118A3188D21BDA187E1FC1AA3502895B21AB846D23165C11D"
+                  },
+                  {
+                      "path":  "OptiScaler/streamline/sl.interposer.dll",
+                      "version":  "2.14.1.0",
+                      "source":  "NVIDIA Streamline 2.14.1",
+                      "signature":  "Valid",
+                      "sha256":  "8C87C9499461DA561EDD529AA9BF7831D67D7B94EBB1C1A5ED54EF4934E1EA4C"
+                  },
+                  {
+                      "path":  "OptiScaler/streamline/sl.nis.dll",
+                      "version":  "2.14.1.0",
+                      "source":  "NVIDIA Streamline 2.14.1",
+                      "signature":  "Valid",
+                      "sha256":  "556870E456D268601188919927B3B122F76B25F9B221CC4B15D3EF649F0AD27B"
+                  },
+                  {
+                      "path":  "OptiScaler/streamline/sl.nvperf.dll",
+                      "version":  "2.14.1.0",
+                      "source":  "NVIDIA Streamline 2.14.1",
+                      "signature":  "Valid",
+                      "sha256":  "B4CA8F8EEBA653446F27D20E8B394CDAAE5D518C1292B440A4B97652E0F0376B"
+                  },
+                  {
+                      "path":  "OptiScaler/streamline/sl.pcl.dll",
+                      "version":  "2.14.1.0",
+                      "source":  "NVIDIA Streamline 2.14.1",
+                      "signature":  "Valid",
+                      "sha256":  "F13D51CFA05F4CD514DF2026049E2DB8ADF359221713170AD386FD499915B582"
+                  },
+                  {
+                      "path":  "OptiScaler/streamline/sl.reflex.dll",
+                      "version":  "2.14.1.0",
+                      "source":  "NVIDIA Streamline 2.14.1",
+                      "signature":  "Valid",
+                      "sha256":  "0CE9725E3E03EA9E7F81D008B57F33EE365973D2E349131C8B1C3E3378FE2DB0"
+                  }
+              ]
+}

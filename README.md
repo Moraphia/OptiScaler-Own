@@ -39,7 +39,7 @@
 | --- | --- | --- |
 | 本分支稳定版 | 管理器打开“更新中心”时读取本仓库 `releases/latest`；分别下载、校验管理器包和游戏包 | 发布新版本、提供两份 ZIP 及对应 SHA-256 清单；管理器更新需退出后手动替换 |
 | 核心源码及 SDK | [`upstreams.json`](upstreams.json) 列有官方 OptiScaler、AMD FidelityFX、Intel XeSS、NVIDIA NVAPI、Streamline、DLSS、DLSS-Enabler、dlssg-to-fsr3；[`Check-Upstreams.ps1`](tools/Check-Upstreams.ps1) 可手动比对 GitHub commit/Release | 审阅上游变更，按需更新子模块、移植补丁、重新构建和游戏测试；**目前没有自动同步、自动 PR 或六小时定时检查** |
-| 随包二进制 | 当前未逐个自动检查文件版本、签名和兼容性；`upstreams.lock.json` 也不是完整运行库锁文件 | 分别记录 DLSS、DLSS-G、DLSSD、Streamline 插件、Neural Rendering DLL 的来源、文件版本、哈希与许可证，再决定是否换版 |
+| 随包二进制 | 管理器的 `dependency-inventory.json` 已逐个记录 v0.2.3 正式包的 28 个 DLL 的版本、签名、哈希与归属/推定来源；这不是自动最新版本检查或逐游戏扫描 | 新版发布包重新生成清单，核对来源、许可与兼容性，再决定是否换版 |
 
 游戏内 Insert 菜单仍有本分支版本的“新版可用”判断（将内置版本与本仓库最新稳定版 tag 比较）。管理器则主要显示最新 Release 和下载入口，**当前不会把本地已安装版本与远端版本逐一比较并标出哪些游戏文件已过期**；依赖矩阵也只是读取随管理器发布的静态锁文件，不会在界面里实时查询每个上游。
 
