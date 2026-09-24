@@ -1,6 +1,6 @@
 # OptiScaler Manager
 
-Current stable manager: `0.2.0`. The manager-only ZIP contains no OptiScaler runtime DLLs and is not an install package for games. The separate `Package/` folder described below is still required for local installation.
+当前稳定版管理器：`0.2.1`。管理器 ZIP 不包含游戏端运行库；游戏安装包作为独立 ZIP 在同一稳定版 Release 发布。
 
 Independent Windows 10/11 x64 desktop manager for OptiScaler. The manager does not replace the in-game ImGui overlay; it handles game discovery, installation, verification, repair, configuration snapshots and release updates.
 
