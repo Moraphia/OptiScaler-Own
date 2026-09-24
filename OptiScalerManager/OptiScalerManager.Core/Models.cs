@@ -90,7 +90,11 @@ public sealed class ReleaseInfo
     public string? Sha256 { get; init; }
     public bool IsPrerelease { get; init; }
     public DateTimeOffset PublishedAt { get; init; }
+    public string PackageType { get; init; } = "game";
 }
+
+public sealed record ReleaseCatalog(string TagName, string Name, string Body, DateTimeOffset PublishedAt,
+    ReleaseInfo? Manager, ReleaseInfo? Game);
 
 public sealed class PackageInspection
 {
@@ -103,7 +107,9 @@ public sealed class PackageInspection
     public IReadOnlyList<string> Warnings { get; init; } = [];
     public IReadOnlyList<string> Errors { get; init; } = [];
     public bool HasManager { get; init; }
+    public bool HasManagerCore { get; init; }
     public bool HasOptiScalerDll { get; init; }
+    public bool HasOptiScalerIni { get; init; }
     public bool HasManifest { get; init; }
 }
 

@@ -7,14 +7,24 @@ public sealed class IniDocument
 {
     private readonly List<string> _lines;
     private readonly Encoding _encoding;
-    private IniDocument(List<string> lines, Encoding encoding) { _lines = lines; _encoding = encoding; }
+    private readonly string _newline;
+    private readonly bool _trailingNewline;
+    private IniDocument(List<string> lines, Encoding encoding, string newline, bool trailingNewline) { _lines = lines; _encoding = encoding; _newline = newline; _trailingNewline = trailingNewline; }
 
     public static IniDocument Load(string path)
     {
         var bytes = File.ReadAllBytes(path);
-        var encoding = bytes.Length >= 3 && bytes[0] == 0xEF && bytes[1] == 0xBB && bytes[2] == 0xBF
-            ? new UTF8Encoding(true) : new UTF8Encoding(false);
-        return new IniDocument(File.ReadAllLines(path, encoding).ToList(), encoding);
+        Encoding encoding;
+        if (bytes.Length >= 3 && bytes[0] == 0xEF && bytes[1] == 0xBB && bytes[2] == 0xBF) encoding = new UTF8Encoding(true, true);
+        else if (bytes.Length >= 2 && bytes[0] == 0xFF && bytes[1] == 0xFE) encoding = new UnicodeEncoding(false, true, true);
+        else if (bytes.Length >= 2 && bytes[0] == 0xFE && bytes[1] == 0xFF) encoding = new UnicodeEncoding(true, true, true);
+        else encoding = new UTF8Encoding(false, true);
+        var text = encoding.GetString(bytes).TrimStart('\uFEFF');
+        var newline = text.Contains("\r\n", StringComparison.Ordinal) ? "\r\n" : text.Contains('\n') ? "\n" : text.Contains('\r') ? "\r" : Environment.NewLine;
+        var trailing = text.EndsWith(newline, StringComparison.Ordinal);
+        var lines = text.Split(["\r\n", "\n", "\r"], StringSplitOptions.None).ToList();
+        if (trailing) lines.RemoveAt(lines.Count - 1);
+        return new IniDocument(lines, encoding, newline, trailing);
     }
 
     public string? Get(string section, string key)
@@ -78,7 +88,7 @@ public sealed class IniDocument
         _lines.Insert(sectionEnd, $"{key}={value ?? ""}");
     }
 
-    public string Render() => string.Join("\r\n", _lines) + "\r\n";
+    public string Render() => string.Join(_newline, _lines) + (_trailingNewline ? _newline : "");
     public void SaveAtomic(string path)
     {
         var temp = path + ".manager.tmp";
@@ -87,9 +97,15 @@ public sealed class IniDocument
     }
 }
 
-public sealed class IniEntry
+public sealed class IniEntry : System.ComponentModel.INotifyPropertyChanged
 {
+    private string _value = "";
     public string Section { get; init; } = "";
     public string Key { get; init; } = "";
-    public string Value { get; set; } = "";
+    public string Value { get => _value; set { if (_value == value) return; _value = value; PropertyChanged?.Invoke(this, new System.ComponentModel.PropertyChangedEventArgs(nameof(Value))); } }
+    public event System.ComponentModel.PropertyChangedEventHandler? PropertyChanged;
+    public string Category => ConfigMetadata.Category(Section);
+    public string Description => ConfigMetadata.Description(Section, Key);
+    public string Documentation => ConfigMetadata.Documentation(Section, Key);
+    public IReadOnlyList<string> Options => ConfigMetadata.Options(Section, Key, Value);
 }

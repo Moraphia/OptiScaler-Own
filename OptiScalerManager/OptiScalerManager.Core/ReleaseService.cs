@@ -7,35 +7,48 @@ namespace OptiScalerManager.Core;
 public sealed class ReleaseService : IReleaseService, IDisposable
 {
     private readonly HttpClient _client = new();
-    private const string Repo = "optiscaler/OptiScaler";
-    public ReleaseService()
+    private readonly string _repo;
+    private readonly bool _ownChannel;
+    public ReleaseService(string? ownRepository = null)
     {
+        _ownChannel = !string.IsNullOrWhiteSpace(ownRepository);
+        _repo = _ownChannel ? ownRepository! : "optiscaler/OptiScaler";
+        if (!System.Text.RegularExpressions.Regex.IsMatch(_repo, "^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$")) throw new ArgumentException("Repository must be owner/name.", nameof(ownRepository));
         _client.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("OptiScalerManager", "0.1"));
         _client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/vnd.github+json"));
     }
 
     public async Task<ReleaseInfo?> CheckStableAsync(CancellationToken cancellationToken = default)
+        => (await CheckStableCatalogAsync(cancellationToken))?.Game;
+
+    public async Task<ReleaseCatalog?> CheckStableCatalogAsync(CancellationToken cancellationToken = default)
     {
-        using var response = await _client.GetAsync($"https://api.github.com/repos/{Repo}/releases/latest", cancellationToken);
+        using var response = await _client.GetAsync($"https://api.github.com/repos/{_repo}/releases/latest", cancellationToken);
         if (!response.IsSuccessStatusCode) return null;
         using var doc = JsonDocument.Parse(await response.Content.ReadAsStreamAsync(cancellationToken));
-        var root = doc.RootElement;
-        var assets = root.TryGetProperty("assets", out var a) ? a.EnumerateArray() : [];
-        var asset = assets.FirstOrDefault(x => x.GetProperty("name").GetString()?.EndsWith(".zip", StringComparison.OrdinalIgnoreCase) == true);
-        var manifest = assets.FirstOrDefault(x => x.GetProperty("name").GetString()?.EndsWith(".manifest.json", StringComparison.OrdinalIgnoreCase) == true);
-        return new ReleaseInfo
+        return ParseCatalog(doc.RootElement, _ownChannel);
+    }
+
+    public static ReleaseCatalog ParseCatalog(JsonElement root, bool ownChannel)
+    {
+        var assets = root.TryGetProperty("assets", out var a) ? a.EnumerateArray().ToArray() : [];
+        var tag = root.GetProperty("tag_name").GetString() ?? "unknown";
+        var name = root.GetProperty("name").GetString() ?? "OptiScaler Release";
+        var body = root.GetProperty("body").GetString() ?? "";
+        var published = root.GetProperty("published_at").GetDateTimeOffset();
+        ReleaseInfo? FindPackage(string assetName, string packageType)
         {
-            TagName = root.GetProperty("tag_name").GetString() ?? "unknown",
-            Name = root.GetProperty("name").GetString() ?? "OptiScaler Release",
-            Body = root.GetProperty("body").GetString() ?? "",
-            // Official releases do not contain this branch's experimental modules.
-            // Keep the update view read-only until an own-release feed is configured.
-            DownloadUrl = null,
-            AssetName = null,
-            ManifestDownloadUrl = null,
-            IsPrerelease = root.GetProperty("prerelease").GetBoolean(),
-            PublishedAt = root.GetProperty("published_at").GetDateTimeOffset()
-        };
+            var asset = assets.FirstOrDefault(x => string.Equals(x.GetProperty("name").GetString(), assetName, StringComparison.OrdinalIgnoreCase));
+            var manifest = assets.FirstOrDefault(x => string.Equals(x.GetProperty("name").GetString(), assetName + ".manifest.json", StringComparison.OrdinalIgnoreCase));
+            if (!ownChannel || asset.ValueKind != JsonValueKind.Object || manifest.ValueKind != JsonValueKind.Object) return null;
+            return new ReleaseInfo { TagName = tag, Name = name, Body = body,
+                DownloadUrl = asset.GetProperty("browser_download_url").GetString(), AssetName = assetName,
+                ManifestDownloadUrl = manifest.GetProperty("browser_download_url").GetString(),
+                IsPrerelease = false, PublishedAt = published, PackageType = packageType };
+        }
+        return new ReleaseCatalog(tag, name, body, published,
+            FindPackage("OptiScalerManager-win-x64.zip", "manager"),
+            FindPackage("OptiScaler-Package-win-x64.zip", "game"));
     }
 
     public Task<PackageInspection> InspectPackageAsync(string packagePath, CancellationToken cancellationToken = default)
@@ -46,7 +59,9 @@ public sealed class ReleaseService : IReleaseService, IDisposable
         var entries = new List<string>();
         var supported = packagePath.EndsWith(".zip", StringComparison.OrdinalIgnoreCase);
         var hasManager = false;
+        var hasManagerCore = false;
         var hasDll = false;
+        var hasIni = false;
         var hasManifest = false;
 
         if (!File.Exists(packagePath)) errors.Add("Package file was not found.");
@@ -69,11 +84,14 @@ public sealed class ReleaseService : IReleaseService, IDisposable
                     }
                     entries.Add(entry.FullName);
                     var fileName = Path.GetFileName(entry.FullName);
-                    if (fileName.Equals("OptiScalerManager.exe", StringComparison.OrdinalIgnoreCase)) hasManager = true;
-                    if (fileName.Equals("OptiScaler.dll", StringComparison.OrdinalIgnoreCase)) hasDll = true;
+                    if (entry.FullName.Equals("OptiScalerManager.exe", StringComparison.OrdinalIgnoreCase)) hasManager = true;
+                    if (entry.FullName.Equals("OptiScalerManager.Core.dll", StringComparison.OrdinalIgnoreCase)) hasManagerCore = true;
+                    if (entry.FullName.Equals("OptiScaler.dll", StringComparison.OrdinalIgnoreCase)) hasDll = true;
+                    if (entry.FullName.Equals("OptiScaler.ini", StringComparison.OrdinalIgnoreCase)) hasIni = true;
                     if (fileName.EndsWith(".manifest.json", StringComparison.OrdinalIgnoreCase)) hasManifest = true;
                 }
                 if (!hasDll) warnings.Add("The package does not contain OptiScaler.dll.");
+                if (!hasIni) warnings.Add("The package does not contain OptiScaler.ini.");
                 if (!hasManager) warnings.Add("The package does not contain the optional Manager executable.");
             }
             catch (Exception ex) { errors.Add($"ZIP inspection failed: {ex.Message}"); }
@@ -90,16 +108,24 @@ public sealed class ReleaseService : IReleaseService, IDisposable
             Warnings = warnings,
             Errors = errors,
             HasManager = hasManager,
+            HasManagerCore = hasManagerCore,
             HasOptiScalerDll = hasDll,
+            HasOptiScalerIni = hasIni,
             HasManifest = hasManifest
         });
     }
 
-    public static async Task<string> ExtractPackageAsync(string packagePath, string destination, CancellationToken cancellationToken = default)
+    public static async Task<string> ExtractPackageAsync(string packagePath, string destination, string packageType = "game", CancellationToken cancellationToken = default)
     {
         using var service = new ReleaseService();
         var inspection = await service.InspectPackageAsync(packagePath, cancellationToken);
-        if (!inspection.IsSafe || !inspection.IsSupportedArchive || !inspection.HasOptiScalerDll)
+        var expectedFilesPresent = packageType switch
+        {
+            "manager" => inspection.HasManager && inspection.HasManagerCore,
+            "game" => inspection.HasOptiScalerDll && inspection.HasOptiScalerIni,
+            _ => throw new ArgumentException("Unknown package type.", nameof(packageType))
+        };
+        if (!inspection.IsSafe || !inspection.IsSupportedArchive || !expectedFilesPresent)
             throw new InvalidDataException(string.Join(" ", inspection.Errors.Concat(inspection.Warnings)));
         Directory.CreateDirectory(destination);
         using var archive = ZipFile.OpenRead(packagePath);

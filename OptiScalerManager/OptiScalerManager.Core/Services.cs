@@ -38,18 +38,20 @@ public sealed class ConfigService : IConfigService
         if (!File.Exists(path)) throw new FileNotFoundException("OptiScaler.ini was not found.", path);
         var text = File.ReadAllText(path); return Task.FromResult(new ConfigDocument { Path = path, Text = text, Sha256 = FileUtilities.Sha256(path) });
     }
-    public Task<OperationResult> WriteAsync(GameEntry game, IReadOnlyList<ConfigChange> changes, string? expectedSha256 = null, CancellationToken cancellationToken = default)
+    public async Task<OperationResult> WriteAsync(GameEntry game, IReadOnlyList<ConfigChange> changes, string? expectedSha256 = null, CancellationToken cancellationToken = default)
     {
         try
         {
             var path = Path.Combine(game.InstallPath, "OptiScaler.ini");
-            if (!File.Exists(path)) return Task.FromResult(OperationResult.Fail("OptiScaler.ini was not found."));
+            if (!File.Exists(path)) return OperationResult.Fail("OptiScaler.ini was not found.");
             if (!string.IsNullOrWhiteSpace(expectedSha256) && !FileUtilities.Sha256(path).Equals(expectedSha256, StringComparison.OrdinalIgnoreCase))
-                return Task.FromResult(OperationResult.Fail("OptiScaler.ini was changed outside the Manager; save was blocked."));
+                return OperationResult.Fail("OptiScaler.ini was changed outside the Manager; save was blocked.");
+            cancellationToken.ThrowIfCancellationRequested();
+            await CreateSnapshotAsync(game, "Automatic backup before save", cancellationToken);
             var ini = IniDocument.Load(path); foreach (var c in changes) ini.Set(c.Section, c.Key, c.Value); ini.SaveAtomic(path);
-            return Task.FromResult(OperationResult.Ok("Configuration saved."));
+            return OperationResult.Ok("Configuration saved; an automatic backup was created.");
         }
-        catch (Exception ex) { return Task.FromResult(OperationResult.Fail("Configuration could not be saved.", ex.Message)); }
+        catch (Exception ex) { return OperationResult.Fail("Configuration could not be saved.", ex.Message); }
     }
     public async Task<ConfigSnapshot> CreateSnapshotAsync(GameEntry game, string description, CancellationToken cancellationToken = default)
     {
@@ -98,7 +100,7 @@ public sealed class InstallationService : IInstallationService
         if (!Proxies.Contains(options.ProxyDll, StringComparer.OrdinalIgnoreCase)) warnings.Add("Unsupported proxy DLL.");
         if (!Directory.Exists(options.PackageDirectory)) warnings.Add("Package directory was not found.");
         var dll = Path.Combine(options.PackageDirectory, "OptiScaler.dll"); if (File.Exists(dll)) files.Add(new FilePlanEntry(dll, Path.Combine(game.InstallPath, options.ProxyDll), true, ExistingHash(Path.Combine(game.InstallPath, options.ProxyDll)))); else warnings.Add("OptiScaler.dll was not found in the package.");
-        var ini = Path.Combine(options.PackageDirectory, "OptiScaler.ini"); if (File.Exists(ini)) files.Add(new FilePlanEntry(ini, Path.Combine(game.InstallPath, "OptiScaler.ini"), true, ExistingHash(Path.Combine(game.InstallPath, "OptiScaler.ini"))));
+        var ini = Path.Combine(options.PackageDirectory, "OptiScaler.ini"); if (File.Exists(ini)) files.Add(new FilePlanEntry(ini, Path.Combine(game.InstallPath, "OptiScaler.ini"), true, ExistingHash(Path.Combine(game.InstallPath, "OptiScaler.ini")))); else warnings.Add("OptiScaler.ini was not found in the package.");
         foreach (var folder in new[] { "OptiScaler", "Licenses" })
         {
             var sourceRoot = Path.Combine(options.PackageDirectory, folder);

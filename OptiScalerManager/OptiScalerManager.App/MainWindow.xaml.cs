@@ -61,7 +61,26 @@ public partial class MainWindow : Window
         finally { Mouse.OverrideCursor = null; }
     }
 
-    private async void GameSelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e) { if (GamesList.SelectedItem is GameEntry game) await InspectAsync(game); }
+    private async void GameSelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+    {
+        var selected = GamesList.SelectedItem is GameEntry;
+        CommonConfigButton.IsEnabled = selected;
+        ExpertConfigButton.IsEnabled = selected;
+        if (GamesList.SelectedItem is GameEntry game) await InspectAsync(game);
+    }
+    private void CommonConfigClick(object sender, RoutedEventArgs e) => OpenConfig(false);
+    private void ExpertConfigClick(object sender, RoutedEventArgs e) => OpenConfig(true);
+    private void OpenConfig(bool expert)
+    {
+        if (GamesList.SelectedItem is not GameEntry game) return;
+        var configPath = Path.Combine(game.InstallPath, "OptiScaler.ini");
+        if (!File.Exists(configPath))
+        {
+            MessageBox.Show(this, "当前游戏还没有 OptiScaler.ini。请先安装 OptiScaler，或确认选中的游戏目录。", "配置文件不存在", MessageBoxButton.OK, MessageBoxImage.Information);
+            return;
+        }
+        new ConfigWindow(game, expert) { Owner = this }.ShowDialog();
+    }
     private async void RefreshClick(object sender, RoutedEventArgs e) { if (GamesList.SelectedItem is GameEntry game) await InspectAsync(game); }
     private async Task InspectAsync(GameEntry game)
     {
@@ -100,7 +119,7 @@ public partial class MainWindow : Window
     private async void InstallClick(object sender, RoutedEventArgs e)
     {
         if (GamesList.SelectedItem is not GameEntry game) { MessageBox.Show(this, "请先选择游戏。", "安装", MessageBoxButton.OK, MessageBoxImage.Information); return; }
-        var package = FindPackageDirectory(); if (package is null) { MessageBox.Show(this, "请先在更新中心下载一个经过检查的安装包，或将发布包解压到管理器的 Package 目录。", "缺少安装包", MessageBoxButton.OK, MessageBoxImage.Warning); return; }
+        var package = FindPackageDirectory(); if (package is null) { MessageBox.Show(this, "请将自己的构建包放到管理器旁的 Package 目录。当前更新中心只提供官方版本信息，不会下载并替换此独立构建。", "缺少安装包", MessageBoxButton.OK, MessageBoxImage.Warning); return; }
         OperationPlan plan;
         try
         {
@@ -148,8 +167,11 @@ public partial class MainWindow : Window
             try
             {
                 using var doc = JsonDocument.Parse(File.ReadAllText(downloaded));
-                var extracted = doc.RootElement.GetProperty("Extracted").GetString();
-                if (!string.IsNullOrWhiteSpace(extracted) && Directory.Exists(extracted)) return extracted;
+                if (doc.RootElement.TryGetProperty("VerifiedOwnChannel", out var verified) && verified.ValueKind == JsonValueKind.True)
+                {
+                    var extracted = doc.RootElement.GetProperty("Extracted").GetString();
+                    if (!string.IsNullOrWhiteSpace(extracted) && Directory.Exists(extracted)) return extracted;
+                }
             }
             catch { }
         }

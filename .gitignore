@@ -451,6 +451,7 @@ release
 build_out
 /dist/
 /OptiScalerManager/publish/
+/OptiScalerManager/publish-next/
 **/bin/
 **/obj/
 /.github/workflows/just_build_fast.yml

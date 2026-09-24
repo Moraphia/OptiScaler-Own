@@ -1,27 +1,27 @@
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
     <sys:String x:Key="Language" xmlns:sys="clr-namespace:System;assembly=mscorlib">语言</sys:String>
-    <sys:String x:Key="NavMyGames" xmlns:sys="clr-namespace:System;assembly=mscorlib">我的游戏</sys:String>
+    <sys:String x:Key="NavMyGames" xmlns:sys="clr-namespace:System;assembly=mscorlib">游戏库</sys:String>
     <sys:String x:Key="NavScanSteam" xmlns:sys="clr-namespace:System;assembly=mscorlib">扫描 Steam</sys:String>
-    <sys:String x:Key="NavUpdates" xmlns:sys="clr-namespace:System;assembly=mscorlib">更新中心</sys:String>
-    <sys:String x:Key="NavSettings" xmlns:sys="clr-namespace:System;assembly=mscorlib">设置</sys:String>
-    <sys:String x:Key="PageMyGames" xmlns:sys="clr-namespace:System;assembly=mscorlib">我的游戏</sys:String>
-    <sys:String x:Key="PageMyGamesSubtitle" xmlns:sys="clr-namespace:System;assembly=mscorlib">选择游戏，检查安装状态并应用配置。</sys:String>
+    <sys:String x:Key="NavUpdates" xmlns:sys="clr-namespace:System;assembly=mscorlib">版本与依赖</sys:String>
+    <sys:String x:Key="NavSettings" xmlns:sys="clr-namespace:System;assembly=mscorlib">管理器设置</sys:String>
+    <sys:String x:Key="PageMyGames" xmlns:sys="clr-namespace:System;assembly=mscorlib">游戏库</sys:String>
+    <sys:String x:Key="PageMyGamesSubtitle" xmlns:sys="clr-namespace:System;assembly=mscorlib">选择游戏，查看状态并管理 OptiScaler 配置。</sys:String>
     <sys:String x:Key="CheckUpdates" xmlns:sys="clr-namespace:System;assembly=mscorlib">检查更新</sys:String>
-    <sys:String x:Key="AddGame" xmlns:sys="clr-namespace:System;assembly=mscorlib">＋  添加游戏</sys:String>
+    <sys:String x:Key="AddGame" xmlns:sys="clr-namespace:System;assembly=mscorlib">添加游戏</sys:String>
     <sys:String x:Key="Library" xmlns:sys="clr-namespace:System;assembly=mscorlib">LIBRARY</sys:String>
     <sys:String x:Key="Status" xmlns:sys="clr-namespace:System;assembly=mscorlib">状态</sys:String>
     <sys:String x:Key="Channel" xmlns:sys="clr-namespace:System;assembly=mscorlib">CHANNEL</sys:String>
     <sys:String x:Key="Stable" xmlns:sys="clr-namespace:System;assembly=mscorlib">STABLE</sys:String>
     <sys:String x:Key="Runtime" xmlns:sys="clr-namespace:System;assembly=mscorlib">RUNTIME</sys:String>
-    <sys:String x:Key="MyGames" xmlns:sys="clr-namespace:System;assembly=mscorlib">我的游戏</sys:String>
+    <sys:String x:Key="MyGames" xmlns:sys="clr-namespace:System;assembly=mscorlib">已添加的游戏</sys:String>
     <sys:String x:Key="SelectProject" xmlns:sys="clr-namespace:System;assembly=mscorlib">选择一个项目查看状态</sys:String>
-    <sys:String x:Key="AddGameFolder" xmlns:sys="clr-namespace:System;assembly=mscorlib">＋  添加游戏目录</sys:String>
+    <sys:String x:Key="AddGameFolder" xmlns:sys="clr-namespace:System;assembly=mscorlib">从文件添加游戏</sys:String>
     <sys:String x:Key="NoGameSelected" xmlns:sys="clr-namespace:System;assembly=mscorlib">没有选择游戏</sys:String>
     <sys:String x:Key="SelectGameHint" xmlns:sys="clr-namespace:System;assembly=mscorlib">从左侧添加或选择一个游戏目录</sys:String>
     <sys:String x:Key="Refresh" xmlns:sys="clr-namespace:System;assembly=mscorlib">重新检查</sys:String>
     <sys:String x:Key="LaunchGame" xmlns:sys="clr-namespace:System;assembly=mscorlib">启动游戏</sys:String>
     <sys:String x:Key="InstallStatus" xmlns:sys="clr-namespace:System;assembly=mscorlib">安装状态</sys:String>
-    <sys:String x:Key="RuntimeDiagnostics" xmlns:sys="clr-namespace:System;assembly=mscorlib">运行库诊断</sys:String>
+    <sys:String x:Key="RuntimeDiagnostics" xmlns:sys="clr-namespace:System;assembly=mscorlib">运行库与备份</sys:String>
     <sys:String x:Key="InstallRepair" xmlns:sys="clr-namespace:System;assembly=mscorlib">安装 / 修复</sys:String>
     <sys:String x:Key="Uninstall" xmlns:sys="clr-namespace:System;assembly=mscorlib">卸载</sys:String>
     <sys:String x:Key="AdoptLegacy" xmlns:sys="clr-namespace:System;assembly=mscorlib">接管旧安装</sys:String>
@@ -30,11 +30,14 @@
     <sys:String x:Key="ManagedRuntime" xmlns:sys="clr-namespace:System;assembly=mscorlib">托管运行库</sys:String>
     <sys:String x:Key="Version" xmlns:sys="clr-namespace:System;assembly=mscorlib">版本</sys:String>
     <sys:String x:Key="Integrity" xmlns:sys="clr-namespace:System;assembly=mscorlib">校验</sys:String>
-    <sys:String x:Key="OperationTimeline" xmlns:sys="clr-namespace:System;assembly=mscorlib">操作时间线</sys:String>
+    <sys:String x:Key="OperationTimeline" xmlns:sys="clr-namespace:System;assembly=mscorlib">最近操作</sys:String>
     <sys:String x:Key="RecentOperation" xmlns:sys="clr-namespace:System;assembly=mscorlib"> ·  最近一次操作</sys:String>
     <sys:String x:Key="ConfigCenter" xmlns:sys="clr-namespace:System;assembly=mscorlib">配置中心</sys:String>
-    <sys:String x:Key="BasicConfig" xmlns:sys="clr-namespace:System;assembly=mscorlib">基础配置</sys:String>
-    <sys:String x:Key="ExpertConfig" xmlns:sys="clr-namespace:System;assembly=mscorlib">专家配置</sys:String>
+    <sys:String x:Key="BasicConfig" xmlns:sys="clr-namespace:System;assembly=mscorlib">常用配置</sys:String>
+    <sys:String x:Key="ExpertConfig" xmlns:sys="clr-namespace:System;assembly=mscorlib">专家配置 · 全部 INI</sys:String>
+    <sys:String x:Key="Workspace" xmlns:sys="clr-namespace:System;assembly=mscorlib">工作区</sys:String>
+    <sys:String x:Key="SyncStatus" xmlns:sys="clr-namespace:System;assembly=mscorlib">同步状态</sys:String>
+    <sys:String x:Key="ManagedFiles" xmlns:sys="clr-namespace:System;assembly=mscorlib">已管理文件</sys:String>
     <sys:String x:Key="CreateSnapshot" xmlns:sys="clr-namespace:System;assembly=mscorlib">创建快照</sys:String>
     <sys:String x:Key="RestoreSnapshot" xmlns:sys="clr-namespace:System;assembly=mscorlib">恢复快照</sys:String>
     <sys:String x:Key="SaveConfig" xmlns:sys="clr-namespace:System;assembly=mscorlib">保存配置</sys:String>

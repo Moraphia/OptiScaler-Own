@@ -3,13 +3,45 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="OptiScaler 配置" Width="1040" Height="760" MinWidth="820" MinHeight="560"
         WindowStartupLocation="CenterOwner" Background="{StaticResource PageBackground}" Foreground="{StaticResource TextPrimary}" FontFamily="Segoe UI Variable Text, Segoe UI">
+    <Window.Resources>
+        <Style x:Key="ExpertPresetMenu" TargetType="ContextMenu">
+            <Setter Property="Background" Value="{StaticResource PanelBackground}"/>
+            <Setter Property="Foreground" Value="{StaticResource TextPrimary}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource PanelBorder}"/>
+            <Setter Property="Template">
+                <Setter.Value><ControlTemplate TargetType="ContextMenu">
+                    <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1" CornerRadius="6" Padding="5" MinWidth="145">
+                        <ScrollViewer MaxHeight="300" VerticalScrollBarVisibility="Auto"><ItemsPresenter/></ScrollViewer>
+                    </Border>
+                </ControlTemplate></Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="ExpertPresetMenuItem" TargetType="MenuItem">
+            <Setter Property="Foreground" Value="{StaticResource TextPrimary}"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Template">
+                <Setter.Value><ControlTemplate TargetType="MenuItem">
+                    <Border x:Name="ItemBorder" Background="{TemplateBinding Background}" CornerRadius="4" Padding="10,7">
+                        <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="20"/></Grid.ColumnDefinitions>
+                            <TextBlock Text="{TemplateBinding Header}" Foreground="{TemplateBinding Foreground}" FontSize="13"/>
+                            <TextBlock x:Name="CheckMark" Grid.Column="1" Text="✓" Foreground="{StaticResource Accent}" Visibility="Collapsed" HorizontalAlignment="Right"/>
+                        </Grid>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsHighlighted" Value="True"><Setter TargetName="ItemBorder" Property="Background" Value="#303841"/></Trigger>
+                        <Trigger Property="IsChecked" Value="True"><Setter TargetName="CheckMark" Property="Visibility" Value="Visible"/></Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate></Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
     <Grid Margin="28">
         <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
         <Grid Grid.Row="0" Margin="0,0,0,18">
             <StackPanel><TextBlock Text="OptiScaler 配置" FontSize="27" FontWeight="SemiBold"/><TextBlock x:Name="GamePath" Foreground="{StaticResource TextSecondary}" Margin="0,4,0,0"/></StackPanel>
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right"><ComboBox x:Name="SnapshotBox" Width="190" Height="34" Margin="0,0,8,0" VerticalContentAlignment="Center" DisplayMemberPath="Description"/><Button Style="{StaticResource GhostButton}" Content="恢复快照" Click="RestoreSnapshotClick" Margin="0,0,8,0"/><Button Style="{StaticResource GhostButton}" Content="创建快照" Click="SnapshotClick" Margin="0,0,8,0"/><Button Style="{StaticResource PrimaryButton}" Content="保存设置" Click="SaveClick"/></StackPanel>
         </Grid>
-        <TabControl Grid.Row="1" Background="Transparent" BorderThickness="0">
+        <TabControl x:Name="ConfigTabs" Grid.Row="1" Background="Transparent" BorderThickness="0">
             <TabItem Header="常用设置" Padding="14,8">
                 <ScrollViewer VerticalScrollBarVisibility="Auto" Margin="0,18,0,0">
                     <StackPanel>
@@ -20,7 +52,7 @@
                             <StackPanel Margin="0,0,18,10"><TextBlock Text="FG Input（游戏提供的输入）"/><ComboBox x:Name="FgInputBox"><ComboBoxItem Content="auto"/><ComboBoxItem Content="nofg"/><ComboBoxItem Content="upscaler"/><ComboBoxItem Content="dlssg"/><ComboBoxItem Content="fsrfg"/><ComboBoxItem Content="fsrfg30"/><ComboBoxItem Content="nvngxfg"/></ComboBox></StackPanel>
                             <StackPanel Margin="0,0,18,10"><TextBlock Text="FG Output（生成后端）"/><ComboBox x:Name="FgOutputBox"><ComboBoxItem Content="auto"/><ComboBoxItem Content="nofg"/><ComboBoxItem Content="dlssg"/><ComboBoxItem Content="fsrfg"/><ComboBoxItem Content="xefg"/></ComboBox></StackPanel>
                             <StackPanel Margin="0,0,18,10"><TextBlock Text="FG Nvngx Replacement"/><ComboBox x:Name="ReplacementBox"><ComboBoxItem Content="auto"/><ComboBoxItem Content="none"/><ComboBoxItem Content="Nukems"/><ComboBoxItem Content="Arturs"/><ComboBoxItem Content="FFX"/><ComboBoxItem Content="Combo"/></ComboBox></StackPanel>
-                            <StackPanel Margin="0,0,18,10"><TextBlock Text="DLSSG InterpolationCount（1 = 2X）"/><ComboBox x:Name="MfgBox"><ComboBoxItem Content="auto"/><ComboBoxItem Content="1"/><ComboBoxItem Content="2"/><ComboBoxItem Content="3"/><ComboBoxItem Content="4"/><ComboBoxItem Content="5"/><ComboBoxItem Content="6"/></ComboBox></StackPanel>
+                            <StackPanel Margin="0,0,18,10"><TextBlock Text="多帧生成倍率（INI 值 = 倍率 − 1）"/><ComboBox x:Name="MfgBox"><ComboBoxItem Content="自动" Tag="auto"/><ComboBoxItem Content="2×（值 1）" Tag="1"/><ComboBoxItem Content="3×（值 2）" Tag="2"/><ComboBoxItem Content="4×（值 3）" Tag="3"/><ComboBoxItem Content="5×（值 4）" Tag="4"/><ComboBoxItem Content="6×（值 5）" Tag="5"/></ComboBox></StackPanel>
                         </UniformGrid>
                         <TextBlock Text="RTX 40 多帧生成（实验性）" FontSize="17" FontWeight="SemiBold" Margin="0,10,0,12"/>
                         <UniformGrid Columns="2">
@@ -35,11 +67,47 @@
                             <StackPanel Margin="0,0,18,10"><CheckBox x:Name="LogBox" Content="写入 OptiScaler 日志" VerticalAlignment="Center"/></StackPanel>
                         </UniformGrid>
                         <TextBlock Text="这些开关只是写入 INI；运行时能否启用取决于显卡、游戏输入和 DLL。修改 FG 或 DLSS NR 后请完全重启游戏。其余配置项可在专家设置中编辑。" TextWrapping="Wrap" Foreground="{StaticResource TextSecondary}" Margin="0,14,0,0"/>
+                        <TextBlock x:Name="CapabilityText" TextWrapping="Wrap" Foreground="{StaticResource TextSecondary}" Margin="0,10,0,0"/>
                     </StackPanel>
                 </ScrollViewer>
             </TabItem>
-            <TabItem Header="专家设置（全部 INI 项）" Padding="14,8">
-                <Grid Margin="0,18,0,0"><Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions><TextBlock Text="编辑 Value 列后点击保存；未知配置项和注释会保留。" Foreground="{StaticResource TextSecondary}" Margin="0,0,0,10"/><DataGrid x:Name="EntriesGrid" Grid.Row="1" AutoGenerateColumns="False" CanUserAddRows="False" HeadersVisibility="Column" Background="{StaticResource PanelBackground}" BorderBrush="{StaticResource PanelBorder}" Foreground="{StaticResource TextPrimary}" RowBackground="#1B1E23" AlternatingRowBackground="#20242A"><DataGrid.Columns><DataGridTextColumn Header="Section" Binding="{Binding Section}" IsReadOnly="True" Width="180"/><DataGridTextColumn Header="Key" Binding="{Binding Key}" IsReadOnly="True" Width="260"/><DataGridTextColumn Header="Value" Binding="{Binding Value, UpdateSourceTrigger=PropertyChanged}" Width="*"/></DataGrid.Columns></DataGrid></Grid>
+            <TabItem Header="专家配置 · 全部 INI" Padding="14,8">
+                <Grid Margin="0,18,0,0">
+                    <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="190"/></Grid.RowDefinitions>
+                    <TextBlock Text="按功能分类显示全部配置。值始终显示在输入框；可直接修改，或点“预设”选常用值。" Foreground="{StaticResource TextSecondary}" Margin="0,0,0,12"/>
+                    <Grid Grid.Row="1" Margin="0,0,0,12">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="260"/></Grid.ColumnDefinitions>
+                        <TextBlock Text="筛选配置项" VerticalAlignment="Center" Margin="0,0,12,0" Foreground="{StaticResource TextSecondary}" />
+                        <TextBox x:Name="ExpertSearchBox" Grid.Column="1" Height="34" TextChanged="ExpertSearchChanged" VerticalContentAlignment="Center" />
+                    </Grid>
+                    <DataGrid x:Name="EntriesGrid" Grid.Row="2" AutoGenerateColumns="False" CanUserAddRows="False" HeadersVisibility="Column" SelectionChanged="ExpertSelectionChanged"
+                              Background="{StaticResource PanelBackground}" BorderBrush="{StaticResource PanelBorder}" Foreground="{StaticResource TextPrimary}"
+                              RowBackground="#1B1E23" AlternatingRowBackground="#20242A" GridLinesVisibility="Horizontal">
+                        <DataGrid.GroupStyle>
+                            <GroupStyle>
+                                <GroupStyle.HeaderTemplate><DataTemplate><Border Background="#29323B" Padding="10,7" Margin="0,8,0,2"><TextBlock Text="{Binding Name}" Foreground="{StaticResource TextPrimary}" FontWeight="SemiBold"/></Border></DataTemplate></GroupStyle.HeaderTemplate>
+                            </GroupStyle>
+                        </DataGrid.GroupStyle>
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="配置项" Binding="{Binding Key}" IsReadOnly="True" Width="220"/>
+                            <DataGridTextColumn Header="说明" Binding="{Binding Description}" IsReadOnly="True" Width="*"/>
+                            <DataGridTemplateColumn Header="值（可选或输入）" Width="230">
+                                <DataGridTemplateColumn.CellTemplate><DataTemplate>
+                                    <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                        <TextBox Text="{Binding Value, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Height="30" VerticalContentAlignment="Center" ToolTip="直接输入原始 INI 值；auto 表示使用程序默认值" />
+                                        <Button Grid.Column="1" Style="{StaticResource GhostButton}" Content="预设 ▾" Click="ExpertPresetClick" Padding="9,4" Margin="6,0,0,0" ToolTip="选择常用值；仍可在左侧输入框手动修改" />
+                                    </Grid>
+                                </DataTemplate></DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                    <Border Grid.Row="3" Background="{StaticResource PanelBackground}" BorderBrush="{StaticResource PanelBorder}" BorderThickness="1" CornerRadius="6" Padding="12" Margin="0,10,0,0">
+                        <DockPanel>
+                            <TextBlock DockPanel.Dock="Top" Text="用途、取值与注意事项（下方附当前分支原文）" FontWeight="SemiBold" Margin="0,0,0,7" />
+                            <ScrollViewer VerticalScrollBarVisibility="Auto"><TextBlock x:Name="ExpertDetailText" Text="选择一个配置项查看完整说明。" TextWrapping="Wrap" Foreground="{StaticResource TextSecondary}" /></ScrollViewer>
+                        </DockPanel>
+                    </Border>
+                </Grid>
             </TabItem>
         </TabControl>
         <TextBlock x:Name="StatusText" Grid.Row="2" Foreground="{StaticResource TextSecondary}" VerticalAlignment="Center" Margin="0,18,0,0"/>

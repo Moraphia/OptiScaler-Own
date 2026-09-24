@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Data;
 using OptiScalerManager.Core;
 
 namespace OptiScalerManager.App;
@@ -16,13 +17,18 @@ public partial class ConfigWindow : Window
     private IniDocument? _document;
     private string? _loadedHash;
 
-    public ConfigWindow(GameEntry game)
+    public ConfigWindow(GameEntry game, bool openExpert = false)
     {
         InitializeComponent();
         _game = game;
         GamePath.Text = game.InstallPath;
         EntriesGrid.ItemsSource = _entries;
+        var expertView = CollectionViewSource.GetDefaultView(_entries);
+        expertView.GroupDescriptions.Add(new PropertyGroupDescription(nameof(IniEntry.Category)));
+        expertView.SortDescriptions.Add(new System.ComponentModel.SortDescription(nameof(IniEntry.Category), System.ComponentModel.ListSortDirection.Ascending));
+        expertView.SortDescriptions.Add(new System.ComponentModel.SortDescription(nameof(IniEntry.Section), System.ComponentModel.ListSortDirection.Ascending));
         SnapshotBox.ItemsSource = _snapshots;
+        ConfigTabs.SelectedIndex = openExpert ? 1 : 0;
         LoadConfig();
         Loaded += async (_, _) => await LoadSnapshotsAsync();
     }
@@ -35,7 +41,11 @@ public partial class ConfigWindow : Window
             _document = IniDocument.Load(path);
             _loadedHash = FileUtilities.Sha256(path);
             _entries.Clear();
-            foreach (var entry in _document.GetEntries()) _entries.Add(entry);
+            foreach (var entry in _document.GetEntries())
+            {
+                entry.PropertyChanged += (_, args) => { if (args.PropertyName == nameof(IniEntry.Value) && EntriesGrid.SelectedItem == entry) ShowExpertDetails(entry); };
+                _entries.Add(entry);
+            }
             _loadedBasic.Clear();
             Set(UpscalerBox, "Upscalers", "Dx12Upscaler");
             Set(FgEnabledBox, "FrameGen", "Enabled");
@@ -52,6 +62,7 @@ public partial class ConfigWindow : Window
             LogBox.IsThreeState = true;
             LogBox.IsChecked = log.Equals("true", StringComparison.OrdinalIgnoreCase) ? true : log.Equals("false", StringComparison.OrdinalIgnoreCase) ? false : null;
             StatusText.Text = $"已加载 {_entries.Count} 个配置项";
+            CapabilityText.Text = string.Join("\n", CapabilityService.Inspect(_game.InstallPath, _document).Select(x => $"{x.Feature}：{x.Detail}"));
         }
         catch (Exception ex) { StatusText.Text = ex.Message; }
     }
@@ -60,14 +71,53 @@ public partial class ConfigWindow : Window
     {
         var value = _document?.Get(section, key) ?? "auto";
         _loadedBasic[$"{section}\0{key}"] = value;
-        box.SelectedItem = box.Items.OfType<ComboBoxItem>().FirstOrDefault(x => string.Equals(x.Content?.ToString(), value, StringComparison.OrdinalIgnoreCase));
-        if (box.SelectedIndex < 0) { var item = new ComboBoxItem { Content = value }; box.Items.Add(item); box.SelectedItem = item; }
+        box.SelectedItem = box.Items.OfType<ComboBoxItem>().FirstOrDefault(x => string.Equals((x.Tag ?? x.Content)?.ToString(), value, StringComparison.OrdinalIgnoreCase));
+        if (box.SelectedIndex < 0) { var item = new ComboBoxItem { Content = box == MfgBox && value == "6" ? "7× 请求（实验值 6）" : value, Tag = value }; box.Items.Add(item); box.SelectedItem = item; }
     }
 
     private void AddChanged(List<ConfigChange> changes, string section, string key, string value)
     {
         if (!_loadedBasic.TryGetValue($"{section}\0{key}", out var original) || !string.Equals(original, value, StringComparison.OrdinalIgnoreCase))
             changes.Add(new(section, key, value));
+    }
+
+    private void ExpertSearchChanged(object sender, TextChangedEventArgs e)
+    {
+        if (EntriesGrid?.ItemsSource is null) return;
+        var query = ExpertSearchBox.Text.Trim();
+        var view = CollectionViewSource.GetDefaultView(_entries);
+        view.Filter = item => item is IniEntry entry &&
+            (query.Length == 0 || entry.Category.Contains(query, StringComparison.OrdinalIgnoreCase) ||
+             entry.Description.Contains(query, StringComparison.OrdinalIgnoreCase) ||
+             entry.Section.Contains(query, StringComparison.OrdinalIgnoreCase) ||
+             entry.Key.Contains(query, StringComparison.OrdinalIgnoreCase) ||
+             entry.Value.Contains(query, StringComparison.OrdinalIgnoreCase));
+        view.Refresh();
+    }
+
+    private void ExpertSelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (ExpertDetailText is null) return;
+        if (EntriesGrid.SelectedItem is IniEntry entry) ShowExpertDetails(entry);
+        else ExpertDetailText.Text = "选择一个配置项查看完整说明。";
+    }
+
+    private void ShowExpertDetails(IniEntry entry) => ExpertDetailText.Text = ConfigMetadata.DetailedExplanation(entry.Section, entry.Key, entry.Value);
+
+    private void ExpertPresetClick(object sender, RoutedEventArgs e)
+    {
+        if (sender is not Button button || button.DataContext is not IniEntry entry) return;
+        var menu = new ContextMenu { Style = (Style)FindResource("ExpertPresetMenu") };
+        foreach (var option in entry.Options)
+        {
+            var item = new MenuItem { Header = option == "auto" ? "auto（默认）" : option, IsChecked = string.Equals(option, entry.Value, StringComparison.OrdinalIgnoreCase), Style = (Style)FindResource("ExpertPresetMenuItem") };
+            item.Click += (_, _) => entry.Value = option;
+            menu.Items.Add(item);
+        }
+        button.ContextMenu = menu;
+        menu.PlacementTarget = button;
+        menu.Placement = System.Windows.Controls.Primitives.PlacementMode.Bottom;
+        menu.IsOpen = true;
     }
 
     private async void SaveClick(object sender, RoutedEventArgs e)
@@ -81,7 +131,8 @@ public partial class ConfigWindow : Window
         }
         EntriesGrid.CommitEdit(DataGridEditingUnit.Cell, true);
         EntriesGrid.CommitEdit(DataGridEditingUnit.Row, true);
-        var changes = _entries.Select(x => new ConfigChange(x.Section, x.Key, x.Value)).ToList();
+        var changes = _entries.Where(x => !string.Equals(_document.Get(x.Section, x.Key), x.Value, StringComparison.Ordinal))
+            .Select(x => new ConfigChange(x.Section, x.Key, x.Value)).ToList();
         AddChanged(changes, "Upscalers", "Dx12Upscaler", Text(UpscalerBox));
         AddChanged(changes, "FrameGen", "Enabled", Text(FgEnabledBox));
         AddChanged(changes, "FrameGen", "FGInput", Text(FgInputBox));
@@ -95,6 +146,10 @@ public partial class ConfigWindow : Window
         AddChanged(changes, "DlssNr", "DualEnlarger", Text(NrEnlargerBox));
         var logValue = LogBox.IsChecked is null ? "auto" : LogBox.IsChecked == true ? "true" : "false";
         if (!string.Equals(logValue, _document.Get("Log", "LogToFile") ?? "auto", StringComparison.OrdinalIgnoreCase)) changes.Add(new("Log", "LogToFile", logValue));
+        if (changes.Count == 0) { StatusText.Text = "没有需要保存的修改。"; return; }
+        var preview = string.Join("\n", changes.Take(16).Select(c => $"[{c.Section}] {c.Key}: {_document.Get(c.Section, c.Key) ?? "(未设置)"} → {c.Value}"));
+        if (changes.Count > 16) preview += $"\n…另有 {changes.Count - 16} 项";
+        if (MessageBox.Show(this, $"即将修改 {changes.Count} 项，保存前会自动创建快照：\n\n{preview}", "确认配置修改", MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes) return;
         var result = await _config.WriteAsync(_game, changes, _loadedHash);
         StatusText.Text = result.Message;
         if (result.Success) DialogResult = true;
@@ -128,5 +183,5 @@ public partial class ConfigWindow : Window
         SnapshotBox.SelectedIndex = -1;
     }
 
-    private static string Text(ComboBox box) => (box.SelectedItem as ComboBoxItem)?.Content?.ToString() ?? box.Text;
+    private static string Text(ComboBox box) => ((box.SelectedItem as ComboBoxItem)?.Tag ?? (box.SelectedItem as ComboBoxItem)?.Content)?.ToString() ?? box.Text;
 }
