@@ -1,0 +1,46 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <sys:String x:Key="Language" xmlns:sys="clr-namespace:System;assembly=mscorlib">Language</sys:String>
+    <sys:String x:Key="NavMyGames" xmlns:sys="clr-namespace:System;assembly=mscorlib">My Games</sys:String>
+    <sys:String x:Key="NavScanSteam" xmlns:sys="clr-namespace:System;assembly=mscorlib">Scan Steam</sys:String>
+    <sys:String x:Key="NavUpdates" xmlns:sys="clr-namespace:System;assembly=mscorlib">Updates</sys:String>
+    <sys:String x:Key="NavSettings" xmlns:sys="clr-namespace:System;assembly=mscorlib">Settings</sys:String>
+    <sys:String x:Key="PageMyGames" xmlns:sys="clr-namespace:System;assembly=mscorlib">My Games</sys:String>
+    <sys:String x:Key="PageMyGamesSubtitle" xmlns:sys="clr-namespace:System;assembly=mscorlib">Select a game to inspect its installation and apply configuration.</sys:String>
+    <sys:String x:Key="CheckUpdates" xmlns:sys="clr-namespace:System;assembly=mscorlib">Check updates</sys:String>
+    <sys:String x:Key="AddGame" xmlns:sys="clr-namespace:System;assembly=mscorlib">＋  Add game</sys:String>
+    <sys:String x:Key="Library" xmlns:sys="clr-namespace:System;assembly=mscorlib">LIBRARY</sys:String>
+    <sys:String x:Key="Status" xmlns:sys="clr-namespace:System;assembly=mscorlib">STATUS</sys:String>
+    <sys:String x:Key="Channel" xmlns:sys="clr-namespace:System;assembly=mscorlib">CHANNEL</sys:String>
+    <sys:String x:Key="Stable" xmlns:sys="clr-namespace:System;assembly=mscorlib">STABLE</sys:String>
+    <sys:String x:Key="Runtime" xmlns:sys="clr-namespace:System;assembly=mscorlib">RUNTIME</sys:String>
+    <sys:String x:Key="MyGames" xmlns:sys="clr-namespace:System;assembly=mscorlib">My Games</sys:String>
+    <sys:String x:Key="SelectProject" xmlns:sys="clr-namespace:System;assembly=mscorlib">Select a project to inspect</sys:String>
+    <sys:String x:Key="AddGameFolder" xmlns:sys="clr-namespace:System;assembly=mscorlib">＋  Add game folder</sys:String>
+    <sys:String x:Key="NoGameSelected" xmlns:sys="clr-namespace:System;assembly=mscorlib">No game selected</sys:String>
+    <sys:String x:Key="SelectGameHint" xmlns:sys="clr-namespace:System;assembly=mscorlib">Add or select a game folder from the library</sys:String>
+    <sys:String x:Key="Refresh" xmlns:sys="clr-namespace:System;assembly=mscorlib">Refresh</sys:String>
+    <sys:String x:Key="LaunchGame" xmlns:sys="clr-namespace:System;assembly=mscorlib">Launch game</sys:String>
+    <sys:String x:Key="InstallStatus" xmlns:sys="clr-namespace:System;assembly=mscorlib">Installation</sys:String>
+    <sys:String x:Key="RuntimeDiagnostics" xmlns:sys="clr-namespace:System;assembly=mscorlib">Runtime diagnostics</sys:String>
+    <sys:String x:Key="InstallRepair" xmlns:sys="clr-namespace:System;assembly=mscorlib">Install / repair</sys:String>
+    <sys:String x:Key="Uninstall" xmlns:sys="clr-namespace:System;assembly=mscorlib">Uninstall</sys:String>
+    <sys:String x:Key="AdoptLegacy" xmlns:sys="clr-namespace:System;assembly=mscorlib">Adopt legacy</sys:String>
+    <sys:String x:Key="ProxyDll" xmlns:sys="clr-namespace:System;assembly=mscorlib">Proxy DLL</sys:String>
+    <sys:String x:Key="Backup" xmlns:sys="clr-namespace:System;assembly=mscorlib">Backup</sys:String>
+    <sys:String x:Key="ManagedRuntime" xmlns:sys="clr-namespace:System;assembly=mscorlib">Managed runtime</sys:String>
+    <sys:String x:Key="Version" xmlns:sys="clr-namespace:System;assembly=mscorlib">Version</sys:String>
+    <sys:String x:Key="Integrity" xmlns:sys="clr-namespace:System;assembly=mscorlib">Integrity</sys:String>
+    <sys:String x:Key="OperationTimeline" xmlns:sys="clr-namespace:System;assembly=mscorlib">Operation timeline</sys:String>
+    <sys:String x:Key="RecentOperation" xmlns:sys="clr-namespace:System;assembly=mscorlib"> ·  latest operation</sys:String>
+    <sys:String x:Key="ConfigCenter" xmlns:sys="clr-namespace:System;assembly=mscorlib">Configuration</sys:String>
+    <sys:String x:Key="BasicConfig" xmlns:sys="clr-namespace:System;assembly=mscorlib">Basic</sys:String>
+    <sys:String x:Key="ExpertConfig" xmlns:sys="clr-namespace:System;assembly=mscorlib">Expert</sys:String>
+    <sys:String x:Key="CreateSnapshot" xmlns:sys="clr-namespace:System;assembly=mscorlib">Create snapshot</sys:String>
+    <sys:String x:Key="RestoreSnapshot" xmlns:sys="clr-namespace:System;assembly=mscorlib">Restore snapshot</sys:String>
+    <sys:String x:Key="SaveConfig" xmlns:sys="clr-namespace:System;assembly=mscorlib">Save configuration</sys:String>
+    <sys:String x:Key="UpdateCenter" xmlns:sys="clr-namespace:System;assembly=mscorlib">Update center</sys:String>
+    <sys:String x:Key="PackageCheck" xmlns:sys="clr-namespace:System;assembly=mscorlib">Package check</sys:String>
+    <sys:String x:Key="DependencyMatrix" xmlns:sys="clr-namespace:System;assembly=mscorlib">Dependency matrix</sys:String>
+    <sys:String x:Key="Close" xmlns:sys="clr-namespace:System;assembly=mscorlib">Close</sys:String>
+    <sys:String x:Key="DownloadAndCheck" xmlns:sys="clr-namespace:System;assembly=mscorlib">Download &amp; inspect</sys:String>
+</ResourceDictionary>

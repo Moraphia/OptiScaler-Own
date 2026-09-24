@@ -1,0 +1,35 @@
+<Window x:Class="OptiScalerManager.App.InstallPreviewWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="安装预览" Width="780" Height="640" MinWidth="680" MinHeight="520"
+        WindowStartupLocation="CenterOwner" Background="{StaticResource PageBackground}"
+        Foreground="{StaticResource TextPrimary}" FontFamily="Segoe UI Variable Text, Segoe UI">
+    <Grid Margin="28">
+        <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+        <StackPanel>
+            <TextBlock Text="安装预览" FontSize="25" FontWeight="SemiBold" />
+            <TextBlock x:Name="Subtitle" Foreground="{StaticResource TextSecondary}" Margin="0,5,0,0" />
+        </StackPanel>
+        <Border Grid.Row="1" Background="#382A18" BorderBrush="#80623A" BorderThickness="1" CornerRadius="9" Padding="14" Margin="0,22,0,14">
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Text="注意" Foreground="{StaticResource Warning}" FontWeight="Bold" Margin="0,0,12,0" />
+                <TextBlock x:Name="WarningText" TextWrapping="Wrap" Foreground="#E9D6B2" />
+            </StackPanel>
+        </Border>
+        <Grid Grid.Row="2">
+            <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+            <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+            <TextBlock x:Name="Summary" FontSize="14" FontWeight="SemiBold" />
+            <TextBlock Grid.Column="1" Text="目标：游戏根目录" Foreground="{StaticResource TextSecondary}" FontSize="11" />
+            <Border Grid.Row="1" Grid.ColumnSpan="2" Background="#10161F" BorderBrush="{StaticResource PanelBorder}" BorderThickness="1" CornerRadius="10" Padding="12" Margin="0,10,0,0">
+                <ListBox x:Name="FilesList" BorderThickness="0" Background="Transparent" Foreground="{StaticResource TextPrimary}" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                    <ListBox.ItemTemplate><DataTemplate><Grid Margin="2,5"><Grid.ColumnDefinitions><ColumnDefinition Width="90"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions><Border Background="#19352F" CornerRadius="4" Padding="7,3" HorizontalAlignment="Left"><TextBlock Text="{Binding Action}" Foreground="{StaticResource Success}" FontSize="10" FontWeight="Bold" /></Border><StackPanel Grid.Column="1" Margin="12,0,0,0"><TextBlock Text="{Binding Destination}" TextTrimming="CharacterEllipsis" /><TextBlock Text="{Binding Detail}" Foreground="{StaticResource TextSecondary}" FontSize="10" Margin="0,2,0,0" /></StackPanel></Grid></DataTemplate></ListBox.ItemTemplate>
+                </ListBox>
+            </Border>
+        </Grid>
+        <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,18,0,0">
+            <Button Style="{StaticResource GhostButton}" Content="取消" IsCancel="True" Width="86" Margin="0,0,10,0" Click="CancelClick" />
+            <Button x:Name="ConfirmButton" Style="{StaticResource PrimaryButton}" Content="确认并安装" Width="120" Click="ConfirmClick" />
+        </StackPanel>
+    </Grid>
+</Window>
