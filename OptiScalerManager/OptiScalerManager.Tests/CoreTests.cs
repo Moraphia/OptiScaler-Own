@@ -5,6 +5,15 @@ namespace OptiScalerManager.Tests;
 
 public sealed class CoreTests : IDisposable
 {
+    [Theory]
+    [InlineData("0.2.2.0", "v0.2.3", true, "需要更新")]
+    [InlineData("0.2.3.0", "v0.2.3", true, "已是最新")]
+    [InlineData("0.2.4", "v0.2.3", true, "本地版本较新")]
+    [InlineData(null, "v0.2.3", true, "本地版本未知")]
+    [InlineData("0.2.2", "v0.2.3", false, "未发布")]
+    public void UpdateVersion_ComparesEachPackageSeparately(string? current, string latest, bool available, string expected)
+        => Assert.Equal(expected, OptiScalerManager.Core.UpdateVersion.Compare(current, latest, available));
+
     private readonly string _root = Path.Combine(Path.GetTempPath(), "OptiScalerManagerTests", Guid.NewGuid().ToString("N"));
     public CoreTests() => Directory.CreateDirectory(_root);
     public void Dispose() { try { Directory.Delete(_root, true); } catch { } }

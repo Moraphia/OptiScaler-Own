@@ -53,6 +53,8 @@ if ((Get-FileHash -LiteralPath $corePath -Algorithm SHA256).Hash -ne $expectedCo
 }
 Copy-Item -LiteralPath (Join-Path $root 'OptiScaler.ini') -Destination (Join-Path $stage 'OptiScaler.ini') -Force
 Copy-Item -LiteralPath (Join-Path $root 'THIRD_PARTY_RUNTIME.md') -Destination (Join-Path $stage 'Licenses\DLSSNR_PROVENANCE.md') -Force
+@{ releaseChannel = 'own'; packageVersion = '0.2.3'; coreSha256 = $expectedCore } |
+    ConvertTo-Json | Set-Content -LiteralPath (Join-Path $stage 'package-version.json') -Encoding UTF8
 
 Push-Location $stage
 try { Compress-Archive -Path * -DestinationPath $output -CompressionLevel Optimal } finally { Pop-Location }
@@ -60,7 +62,7 @@ Add-Type -AssemblyName System.IO.Compression.FileSystem
 $archive = [IO.Compression.ZipFile]::OpenRead($output)
 try {
     $names = @($archive.Entries | ForEach-Object { $_.FullName.Replace('\', '/') })
-    foreach ($required in @('OptiScaler.dll', 'OptiScaler.ini', 'OptiScaler/nvngx_dlss.dll',
+    foreach ($required in @('OptiScaler.dll', 'OptiScaler.ini', 'package-version.json', 'OptiScaler/nvngx_dlss.dll',
                             'OptiScaler/nvngx_dlssnr.dll', 'OptiScaler/streamline/sl.interposer.dll',
                             'OptiScaler/streamline/sl.dlss_nr.dll', 'Licenses/DLSSNR_PROVENANCE.md')) {
         if ($required -notin $names) { throw "Package is missing $required" }

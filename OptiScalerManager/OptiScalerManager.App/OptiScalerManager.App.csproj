@@ -20,5 +20,6 @@
     <ProjectReference Include="..\OptiScalerManager.Core\OptiScalerManager.Core.csproj" />
     <None Include="..\..\upstreams.json" Link="upstreams.json" CopyToOutputDirectory="PreserveNewest" />
     <None Include="..\..\upstreams.lock.json" Link="upstreams.lock.json" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="bundled-runtimes.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>

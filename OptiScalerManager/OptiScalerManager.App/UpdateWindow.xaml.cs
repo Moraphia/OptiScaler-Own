@@ -1,5 +1,7 @@
+using System.Diagnostics;
 using System.IO;
 using System.Text;
+using System.Text.Json;
 using System.Windows;
 using System.Windows.Input;
 using OptiScalerManager.Core;
@@ -13,6 +15,10 @@ public partial class UpdateWindow : Window
     private ReleaseCatalog? _catalog;
     private readonly List<string> _releaseMetadata = [];
     private bool _busy;
+    private readonly string _managerVersion = FileVersionInfo.GetVersionInfo(Path.Combine(AppContext.BaseDirectory, "OptiScalerManager.exe")).FileVersion ?? "未知";
+    private string? _localPackageVersion;
+
+    private sealed record BundledRuntime(string Name, string Files, string Version, string Source, string Note);
 
     public UpdateWindow()
     {
@@ -29,6 +35,7 @@ public partial class UpdateWindow : Window
         }
         _releases = new ReleaseService(_ownRepository);
         RepositoryBox.Text = _ownRepository ?? "";
+        ManagerVersionState.Text = $"管理器：当前 {_managerVersion} · 等待检查";
         Loaded += async (_, _) => await CheckAsync();
         Loaded += async (_, _) => await LoadDependenciesAsync();
         Closed += (_, _) => _releases.Dispose();
@@ -38,6 +45,60 @@ public partial class UpdateWindow : Window
     {
         var root = AppContext.BaseDirectory;
         DependencyGrid.ItemsSource = await new UpstreamService().LoadMatrixAsync(Path.Combine(root, "upstreams.json"), Path.Combine(root, "upstreams.lock.json"));
+        var runtimePath = Path.Combine(root, "bundled-runtimes.json");
+        if (File.Exists(runtimePath))
+        {
+            using var runtimes = JsonDocument.Parse(await File.ReadAllTextAsync(runtimePath));
+            RuntimeGrid.ItemsSource = JsonSerializer.Deserialize<List<BundledRuntime>>(runtimes.RootElement.GetProperty("runtimes").GetRawText(), new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+        }
+    }
+
+    private static async Task<string?> ReadLocalPackageVersionAsync()
+    {
+        var adjacent = Path.Combine(AppContext.BaseDirectory, "Package");
+        var versionFile = Path.Combine(adjacent, "package-version.json");
+        var coreFile = Path.Combine(adjacent, "OptiScaler.dll");
+        if (File.Exists(versionFile) && File.Exists(coreFile))
+        {
+            try
+            {
+                using var versionDocument = JsonDocument.Parse(await File.ReadAllTextAsync(versionFile));
+                var metadata = versionDocument.RootElement;
+                var expectedCore = metadata.GetProperty("coreSha256").GetString();
+                if (expectedCore is not null && (await Task.Run(() => FileUtilities.Sha256(coreFile))).Equals(expectedCore, StringComparison.OrdinalIgnoreCase))
+                    return metadata.GetProperty("packageVersion").GetString();
+            }
+            catch (Exception) { /* An untrusted or incomplete local package remains unknown. */ }
+        }
+        var marker = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "OptiScalerManager", "packages", "latest-package.json");
+        if (!File.Exists(marker)) return null;
+        try
+        {
+            using var document = JsonDocument.Parse(await File.ReadAllTextAsync(marker));
+            var entry = document.RootElement;
+            var packagePath = entry.GetProperty("Package").GetString();
+            var expectedHash = entry.GetProperty("Sha256").GetString();
+            var tag = entry.GetProperty("Release").GetString();
+            if (packagePath is null || expectedHash is null || !File.Exists(packagePath)) return null;
+            var actualHash = await Task.Run(() => FileUtilities.Sha256(packagePath));
+            return actualHash.Equals(expectedHash, StringComparison.OrdinalIgnoreCase) ? tag : null;
+        }
+        catch (Exception) { return null; }
+    }
+
+    private void ShowVersionStates()
+    {
+        var latest = _catalog?.TagName;
+        var managerState = UpdateVersion.Compare(_managerVersion, latest, _catalog?.Manager is not null);
+        var packageState = UpdateVersion.Compare(_localPackageVersion, latest, _catalog?.Game is not null);
+        ManagerVersionState.Text = $"管理器：当前 {_managerVersion} · 最新 {latest ?? "未知"} · {managerState}";
+        PackageVersionState.Text = $"本机已下载游戏包：当前 {_localPackageVersion ?? "未知"} · 最新 {latest ?? "未知"} · {packageState}";
+        StatusText.Text = managerState == "需要更新" || packageState == "需要更新" ? "需要更新" :
+            managerState == "已是最新" && packageState == "已是最新" ? "已是最新" : "请核对版本";
+        StatusBadge.Background = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(
+            StatusText.Text == "需要更新" ? (byte)0x45 : (byte)0x19,
+            StatusText.Text == "需要更新" ? (byte)0x32 : (byte)0x35,
+            StatusText.Text == "需要更新" ? (byte)0x20 : (byte)0x2F));
     }
 
     private async void CheckClick(object sender, RoutedEventArgs e) => await CheckAsync();
@@ -66,12 +127,15 @@ public partial class UpdateWindow : Window
         _busy = true; SetBusy(true, "正在读取 GitHub Release…");
         try
         {
+            _localPackageVersion = await ReadLocalPackageVersionAsync();
             _catalog = await _releases.CheckStableCatalogAsync();
             if (_catalog is null)
             {
                 ReleaseName.Text = "暂时无法获取稳定版";
                 ReleaseMeta.Text = "请检查网络连接，或稍后重试。";
                 StatusText.Text = "OFFLINE";
+                ManagerVersionState.Text = $"管理器：当前 {_managerVersion} · 最新未知";
+                PackageVersionState.Text = $"本机已下载游戏包：当前 {_localPackageVersion ?? "未知"} · 最新未知";
                 StatusBadge.Background = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(0x45, 0x2B, 0x23));
                 DownloadManagerButton.IsEnabled = false;
                 DownloadGameButton.IsEnabled = false;
@@ -81,8 +145,7 @@ public partial class UpdateWindow : Window
 
             ReleaseName.Text = _catalog.Name;
             ReleaseMeta.Text = $"{_catalog.TagName}  ·  {_catalog.PublishedAt.LocalDateTime:g}  ·  管理器：{(_catalog.Manager is null ? "未发布" : "可下载")}  ·  游戏包：{(_catalog.Game is null ? "未发布" : "可下载")}";
-            StatusText.Text = _catalog.Manager is null && _catalog.Game is null ? "NO PACKAGE" : "AVAILABLE";
-            StatusBadge.Background = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(0x19, 0x35, 0x2F));
+            ShowVersionStates();
             DownloadManagerButton.IsEnabled = _catalog.Manager is not null;
             DownloadGameButton.IsEnabled = _catalog.Game is not null;
             Details.Text = (_ownRepository is null ? "这是官方发布信息，仅供查看。请配置自己的稳定版 GitHub Release 仓库。" : $"稳定版更新源：{_ownRepository}。管理器和游戏包必须使用各自的精确文件名与校验清单；管理器下载后不会在运行时覆盖自身。") + "\r\n\r\n" + (_catalog.Body.Trim() is { Length: > 0 } body ? body : "发布说明为空。");
@@ -145,9 +208,12 @@ public partial class UpdateWindow : Window
             var versionDir = Path.Combine(root, FileUtilities.SafeFileName(release.TagName + "-" + release.PackageType + "-" + inspection.Sha256[..12]));
             await ReleaseService.ExtractPackageAsync(packagePath, versionDir, release.PackageType);
             if (release.PackageType == "game")
+            {
                 await FileUtilities.WriteJsonAtomicAsync(Path.Combine(root, "latest-package.json"), new { Release = release.TagName, Package = packagePath, Extracted = versionDir, inspection.Sha256, VerifiedOwnChannel = true, Date = DateTimeOffset.UtcNow });
+                _localPackageVersion = release.TagName;
+            }
             PackageState.Text = "已下载并通过检查";
-            StatusText.Text = release.PackageType == "game" ? "READY TO INSTALL" : "MANAGER READY";
+            ShowVersionStates();
             Details.Text += $"\r\n解包目录：{versionDir}\r\n\r\n" + (release.PackageType == "game" ? "现在可以关闭窗口，在游戏页面点击“安装 / 修复”。" : "这是独立的管理器更新。请先退出当前管理器，再把此目录中的管理器文件复制到原管理器目录；保留原有 Package 文件夹。下载过程不会覆盖正在运行的程序。");
         }
         catch (Exception ex) { PackageState.Text = "检查失败"; Details.Text += $"\r\n\r\n失败：{ex.Message}"; }

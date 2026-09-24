@@ -1,6 +1,6 @@
 # OptiScaler Own v0.2.3 稳定版
 
-本版更新 NVIDIA 运行库，并把本仓库格式检查改为约束新修改的 C++ 行；历史格式问题尚未批量整理。游戏内核心和管理器版本同步为 `0.2.3`；功能与设置沿用 v0.2.2。
+本版更新 NVIDIA 运行库，并把本仓库格式检查改为约束新修改的 C++ 行；历史格式问题尚未批量整理。游戏内核心和管理器版本同步为 `0.2.3`。管理器更新中心现在分别显示管理器、已校验游戏包的当前版本与最新稳定版，标注是否需要更新；依赖矩阵额外展示本版随包运行库的具体版本，不再把上游锁定引用误当成 DLL 版本。新游戏包包含 `package-version.json`，供本地版本识别。
 
 - `nvngx_dlss.dll`、`nvngx_dlssg.dll`、`nvngx_dlssd.dll`：来自 [NVIDIA 官方 DLSS SDK 310.9.1](https://github.com/NVIDIA/DLSS/releases/tag/v310.9.1) / [Streamline SDK 2.14.1](https://github.com/NVIDIA-RTX/Streamline/releases/tag/v2.14.1) 的签名有效生产版 DLL。
 - `sl.*.dll`：将官方 2.14.1 SDK 提供的 11 个生产版插件同步更新。SDK 未提供 `sl.dlss_nr.dll`，所以此文件仍为 2.13.0.0；不要误认为全部插件版本一致。
