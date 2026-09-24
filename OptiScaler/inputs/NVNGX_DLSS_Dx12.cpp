@@ -6,6 +6,7 @@
 #include "NVNGX_Parameter.h"
 #include "proxies/NVNGX_Proxy.h"
 #include "dlssnr/DlssNr.h"
+#include "dlssnr/DlssNr_ExposureScan.h"
 #include <upscalers/dlss/DLSSFeature_Dx12.h>
 #include <shaders/output_scaling/OS_Dx12.h>
 
@@ -817,6 +818,13 @@ NVSDK_NGX_API NVSDK_NGX_Result NVSDK_NGX_D3D12_ReleaseFeature(NVSDK_NGX_Handle* 
     if (!InHandle)
         return NVSDK_NGX_Result_Success;
 
+    // Before any feature's resources are freed, drop the exposure scan's references to whatever it
+    // captured. The scan AddRef's candidates and never released them; a Streamline/DLSS-D resource it
+    // pinned would otherwise be used after its heap is freed here -- the Cyberpunk device-removal.
+    // Capture is gated on NR being enabled (not the scan source), so this drops whatever was captured
+    // whenever NR is on; a no-op only when NR is off.
+    DlssNr::ExposureScan::ReleaseTrackedResources();
+
     auto handleId = InHandle->Id;
 
     // Clean up framegen
@@ -1142,11 +1150,57 @@ NVSDK_NGX_API NVSDK_NGX_Result NVSDK_NGX_D3D12_EvaluateFeature(ID3D12GraphicsCom
         }
     }
 
+    // Neural Rendering ahead of the upscaler rather than after it.
+    //
+    // The model runs on the game's colour buffer at render resolution and writes a surface of ours,
+    // which stands in for colour across the upscale and is put back straight after. Restoring matters:
+    // the parameter block is the game's and it reuses it.
+    struct PreUpscaleNr
+    {
+        NVSDK_NGX_Parameter* params = nullptr;
+        ID3D12Resource* original = nullptr;
+        bool substituted = false;
+
+        void run(ID3D12GraphicsCommandList* cmdList, NVSDK_NGX_Parameter* p, NVSDK_NGX_Feature f)
+        {
+            // The dual-feature arrangement runs the model inside the upscaler's own pipeline instead.
+            // Both would be the same model twice on the same frame.
+            if (!Config::Instance()->DlssNrPreUpscale.value_or_default() ||
+                Config::Instance()->DlssNrDualFeature.value_or_default() ||
+                !Config::Instance()->DlssNrEnabled.value_or_default() || f == NVSDK_NGX_Feature_FrameGeneration ||
+                cmdList == nullptr || p == nullptr)
+                return;
+
+            params = p;
+
+            if (p->Get(NVSDK_NGX_Parameter_Color, (void**) &original) != NVSDK_NGX_Result_Success ||
+                original == nullptr)
+                return;
+
+            DlssNr::EvaluateBeforeUpscale(cmdList, p);
+
+            if (auto* edited = DlssNr::PreUpscaleResult(); edited != nullptr)
+            {
+                p->Set(NVSDK_NGX_Parameter_Color, (void*) edited);
+                substituted = true;
+            }
+        }
+
+        ~PreUpscaleNr()
+        {
+            if (substituted)
+                params->Set(NVSDK_NGX_Parameter_Color, (void*) original);
+        }
+    };
+
     // Native DLSS passthrough
     if (handleId < DLSS_MOD_ID_OFFSET)
     {
         if (cfg.DLSSEnabled.value_or_default() && NVNGXProxy::D3D12_EvaluateFeature() != nullptr)
         {
+            PreUpscaleNr preNr;
+            preNr.run(InCmdList, InParameters, feature);
+
             LOG_DEBUG("Passthrough to native DLSS EvaluateFeature for handle {}", handleId);
 
             NVSDK_NGX_Result result =
@@ -1158,10 +1212,12 @@ NVSDK_NGX_API NVSDK_NGX_Result NVSDK_NGX_D3D12_EvaluateFeature(ID3D12GraphicsCom
             // rendered frame. The feature check is the point: frame generation is handed depth and
             // motion vectors too, and its handle can reach here because the branch above does not
             // return, so filtering on the parameter block alone would run the model twice a frame.
-#if OPTI_DLSSNR
-            if (result == NVSDK_NGX_Result_Success && feature != NVSDK_NGX_Feature_FrameGeneration)
+            //
+            // Skipped when the pass already ran ahead of the upscaler: the two are the same model and
+            // the same per-frame cost, placed at one seam or the other.
+            if (result == NVSDK_NGX_Result_Success && feature != NVSDK_NGX_Feature_FrameGeneration &&
+                !preNr.substituted)
                 DlssNr::EvaluateAfterUpscale(InCmdList, InParameters);
-#endif
 
             return result;
         }
@@ -1184,13 +1240,21 @@ NVSDK_NGX_API NVSDK_NGX_Result NVSDK_NGX_D3D12_EvaluateFeature(ID3D12GraphicsCom
         InParameters->Set("DLSSG.CameraFar", lastDlssgCameraFar.value());
 
     // OptiScaler internal handling
+    PreUpscaleNr preNr;
+    preNr.run(InCmdList, InParameters, feature);
+
     const NVSDK_NGX_Result optiResult = TryEvaluateOptiFeature(InCmdList, InFeatureHandle, InParameters, InCallback);
 
-#if OPTI_DLSSNR
     // Same pass, for OptiScaler's own upscalers rather than native DLSS.
-    if (optiResult == NVSDK_NGX_Result_Success && feature != NVSDK_NGX_Feature_FrameGeneration)
+    //
+    // The dual-feature arrangement runs the model inside that upscaler's own pipeline, at render
+    // resolution. Running it here as well runs it a second time on the enlarged frame, at exactly the
+    // full cost the arrangement exists to avoid.
+    //
+    // EvaluateAfterUpscale declines by itself on a frame the pipeline stage already handled, so every
+    // call site is covered rather than this one.
+    if (optiResult == NVSDK_NGX_Result_Success && feature != NVSDK_NGX_Feature_FrameGeneration && !preNr.substituted)
         DlssNr::EvaluateAfterUpscale(InCmdList, InParameters);
-#endif
 
     return optiResult;
 }

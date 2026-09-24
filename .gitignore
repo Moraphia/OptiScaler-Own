@@ -420,6 +420,12 @@ FodyWeavers.xsd
 
 !external/directx_agility_sdk/lib/D3D12Core.dll
 
+# Streamline 2.14 and DLSS 310.9 redistributables, packaged into the build under OptiScaler
+# and OptiScaler/streamline. Nukem's dlssg-to-fsr3 (GPLv3, see Licenses/) rides the nvngx
+# mirror so it lands beside OptiScaler.dll where Nvngx_Nukems loads it.
+!dist/streamline/*.dll
+!dist/nvngx/*.dll
+
 # Fortran module files
 *.mod
 *.smod
@@ -440,3 +446,13 @@ CyberFSR/imgui.ini
 /OptiScaler/resource_build_commit.h
 /OptiScaler/misc/Telemetry.cpp
 /OptiScaler/misc/Telemetry.h
+release
+build_out
+/dist/
+/OptiScalerManager/publish/
+**/bin/
+**/obj/
+/.github/workflows/just_build_fast.yml
+/package_release.ps1
+/docs/MAINTAINER_NOTES.md
+/images/witcher3_mfg_6x_setup.png

@@ -27,17 +27,8 @@ ApplyCompatResolutionQuirking = _ApplyCompatResolutionQuirking
 CompatString = _CompatString
 CompatValue = _CompatValue
 DXGIDisableVBlankVirtualization = _DXGIDisableVBlankVirtualization
-DXGIDumpJournal = _DXGIDumpJournal
 DXGIReportAdapterConfiguration = _DXGIReportAdapterConfiguration
-DXGID3D10CreateDevice = _DXGID3D10CreateDevice
-DXGID3D10CreateLayeredDevice = _DXGID3D10CreateLayeredDevice
-DXGID3D10GetLayeredDeviceSize = _DXGID3D10GetLayeredDeviceSize
-DXGID3D10RegisterLayers = _DXGID3D10RegisterLayers
-PIXBeginCapture = _PIXBeginCapture
-PIXEndCapture = _PIXEndCapture
-PIXGetCaptureState = _PIXGetCaptureState
-SetAppCompatStringPointer = _SetAppCompatStringPointer
-UpdateHMDEmulationStatus = _UpdateHMDEmulationStatus
+DXGIDumpJournal =_DXGIDumpJournal
 
 EXPORTS
 AppCacheCheckManifest = _AppCacheCheckManifest

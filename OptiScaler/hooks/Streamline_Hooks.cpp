@@ -225,10 +225,23 @@ sl::Result StreamlineHooks::hkslInit(const sl::Preferences& pref, uint64_t sdkVe
             localPref.pathsToPlugins = storage.data();
             localPref.numPathsToPlugins = (uint32_t) storage.size();
 
-            if (!missingDlls.empty())
+            // Only warn about files the game actually needs from our set:
+            // skip optional plugins the game never loads through this path
+            // (e.g. sl.directsr.dll), so a clean bundle stays silent.
+            std::vector<std::string> actionableMissing;
+            for (const auto& missingDll : missingDlls)
+            {
+                std::string lower = missingDll;
+                to_lower_in_place(lower);
+                if (lower == "sl.directsr.dll")
+                    continue;
+                actionableMissing.push_back(missingDll);
+            }
+
+            if (!actionableMissing.empty())
             {
                 std::string toastMsg = "You are missing the following dlls from the streamline folder:\n";
-                for (const auto& missingDll : missingDlls)
+                for (const auto& missingDll : actionableMissing)
                 {
                     toastMsg += "- " + missingDll + "\n";
                 }
@@ -1138,26 +1151,24 @@ sl::Result StreamlineHooks::hkslDLSSGSetOptions(const sl::ViewportHandle& viewpo
         newOptions.dynamicTargetFrameRate = Config::Instance()->FGDLSSGFramerateTargetDMFG.value();
     }
 
-    if (state.swapchainApi == API::Vulkan)
-    {
-        // Only matters for Vulkan, DX doesn't use this delay
-        if (dlssgPotentiallyActive && !MenuOverlayBase::IsVisible())
-            state.delayMenuRenderBy = 10;
-
-        if (MenuOverlayBase::IsVisible())
-        {
-            newOptions.mode = sl::DLSSGMode::eOff;
-            newOptions.flags |= sl::DLSSGFlags::eRetainResourcesWhenOff;
-            ReflexHooks::setDlssgFrameCount(0);
-        }
-    }
+    applyMenuDlssgInterlock(newOptions, dlssgPotentiallyActive);
 
     LOG_TRACE("DLSSG Modified Mode: {}", magic_enum::enum_name(newOptions.mode));
 
     if (dlssgPotentiallyActive && state.streamlineVersion >= feature_version { 2, 7, 1 })
     {
+        // Before the read, so the count this captures is the patched one. Five stays under the
+        // sanity bound below.
+        MfgUnlock::TryApply();
+
+        // nvngx_dlssg.dll can load after this runs, and the ceiling read before it does is Ada's
+        // 1. Caching that holds it for the session and clamps the override to it. AnyModuleSeen
+        // means the patches have been attempted, so from there the answer is final either way.
+        const bool unlockPending =
+            Config::Instance()->FGDLSSGAdaMfgUnlock.value_or_default() && !MfgUnlock::AnyModuleSeen();
+
         // Populate dlssgMfgMax once
-        if (!state.dlssgMfgMax.has_value())
+        if (!state.dlssgMfgMax.has_value() && !unlockPending)
         {
             // Before the read, so the count this captures is the patched one. Five stays under the
             // sanity bound below.
@@ -1165,16 +1176,24 @@ sl::Result StreamlineHooks::hkslDLSSGSetOptions(const sl::ViewportHandle& viewpo
 
             sl::DLSSGState localState {};
             sl::DLSSGOptions localOptions {};
-            if (o_slDLSSGGetState(viewport, localState, &localOptions) == sl::Result::eOk &&
-                localState.numFramesToGenerateMax > 0 && localState.numFramesToGenerateMax < 6)
+            if (o_slDLSSGGetState(viewport, localState, &localOptions) == sl::Result::eOk)
             {
-                state.dlssgMfgMax = localState.numFramesToGenerateMax;
-                LOG_TRACE("Saving original numFramesToGenerateMax: {}", state.dlssgMfgMax.value());
+                // A wrapper ahead of the snippet can answer a lower ceiling than the patched one.
+                if (auto unlockedMax = MfgUnlock::UnlockedMax(); unlockedMax > localState.numFramesToGenerateMax)
+                    localState.numFramesToGenerateMax = unlockedMax;
 
-                if (Config::Instance()->FGDLSSGOverrideInterpolationCount.has_value() &&
-                    Config::Instance()->FGDLSSGOverrideInterpolationCount.value() > state.dlssgMfgMax.value())
+                if (localState.numFramesToGenerateMax > 0 && localState.numFramesToGenerateMax < 6)
                 {
-                    Config::Instance()->FGDLSSGOverrideInterpolationCount = state.dlssgMfgMax.value();
+                    state.dlssgMfgMax = localState.numFramesToGenerateMax;
+                    LOG_TRACE("Saving original numFramesToGenerateMax: {}", state.dlssgMfgMax.value());
+
+                    // Volatile: the clamp holds for this run and leaves the ini setting alone.
+                    if (Config::Instance()->FGDLSSGOverrideInterpolationCount.has_value() &&
+                        Config::Instance()->FGDLSSGOverrideInterpolationCount.value() > state.dlssgMfgMax.value())
+                    {
+                        Config::Instance()->FGDLSSGOverrideInterpolationCount.set_volatile_value(
+                            state.dlssgMfgMax.value());
+                    }
                 }
             }
         }
@@ -1187,6 +1206,20 @@ sl::Result StreamlineHooks::hkslDLSSGSetOptions(const sl::ViewportHandle& viewpo
                 newOptions.numFramesToGenerate = overrideCount;
             else if (!enableDynamicMode)
                 newOptions.mode = sl::DLSSGMode::eOff;
+        }
+    }
+    else if (dlssgPotentiallyActive && Config::Instance()->FGDLSSGOverrideInterpolationCount.has_value() &&
+             Config::Instance()->FGDLSSGOverrideInterpolationCount.value() != 0)
+    {
+        // Once. slDLSSGSetOptions runs per frame.
+        static bool warnedNoMfg = false;
+
+        if (!warnedNoMfg)
+        {
+            warnedNoMfg = true;
+            LOG_WARN("Interpolation count override ignored: Streamline {}.{}.{}, multi frame generation "
+                     "needs 2.7.1",
+                     state.streamlineVersion.major, state.streamlineVersion.minor, state.streamlineVersion.patch);
         }
     }
 
@@ -1220,6 +1253,12 @@ sl::Result StreamlineHooks::hkslDLSSGGetState(const sl::ViewportHandle& viewport
             state.numFramesToGenerateMax = newState.numFramesToGenerateMax;
             state.bReserved4 = newState.bReserved4;
             state.bIsVsyncSupportAvailable = newState.bIsVsyncSupportAvailable;
+
+            // nvngx_dlssg.dll answers the real ceiling, but a Streamline wrapper between here and the
+            // snippet can carry a lower one of its own. Publish the unlocked count. Struct version 1
+            // ends ahead of this field, so the raise stays inside this branch.
+            if (auto unlockedMax = MfgUnlock::UnlockedMax(); unlockedMax > state.numFramesToGenerateMax)
+                state.numFramesToGenerateMax = unlockedMax;
         }
 
         if (originalStructVersion >= 3)
@@ -1235,6 +1274,10 @@ sl::Result StreamlineHooks::hkslDLSSGGetState(const sl::ViewportHandle& viewport
     {
         result = o_slDLSSGGetState(viewport, state, options);
         State::Instance().dlssgGameDMFGSupported = state.bIsDynamicMFGSupported == sl::eTrue;
+
+        // The wrapper's ceiling, replaced by the unlocked count.
+        if (auto unlockedMax = MfgUnlock::UnlockedMax(); unlockedMax > state.numFramesToGenerateMax)
+            state.numFramesToGenerateMax = unlockedMax;
     }
 
     if (!State::Instance().dlssgGameDMFGSupported)
@@ -1246,20 +1289,32 @@ sl::Result StreamlineHooks::hkslDLSSGGetState(const sl::ViewportHandle& viewport
 
     if (optiState.streamlineVersion >= feature_version { 2, 7, 1 })
     {
-        if (!optiState.dlssgMfgMax.has_value())
+        // Provisional until the snippet has been seen. See the note in hkslDLSSGSetOptions.
+        const bool unlockPending =
+            Config::Instance()->FGDLSSGAdaMfgUnlock.value_or_default() && !MfgUnlock::AnyModuleSeen();
+
+        if (!optiState.dlssgMfgMax.has_value() && !unlockPending)
         {
             sl::DLSSGState localState {};
             sl::DLSSGOptions localOptions {};
-            if (o_slDLSSGGetState(viewport, localState, &localOptions) == sl::Result::eOk &&
-                localState.numFramesToGenerateMax > 0 && localState.numFramesToGenerateMax < 6)
+            if (o_slDLSSGGetState(viewport, localState, &localOptions) == sl::Result::eOk)
             {
-                optiState.dlssgMfgMax = localState.numFramesToGenerateMax;
-                LOG_TRACE("Saving original numFramesToGenerateMax: {}", optiState.dlssgMfgMax.value());
+                // A wrapper ahead of the snippet can answer a lower ceiling than the patched one.
+                if (auto unlockedMax = MfgUnlock::UnlockedMax(); unlockedMax > localState.numFramesToGenerateMax)
+                    localState.numFramesToGenerateMax = unlockedMax;
 
-                if (Config::Instance()->FGDLSSGOverrideInterpolationCount.has_value() &&
-                    Config::Instance()->FGDLSSGOverrideInterpolationCount.value() > optiState.dlssgMfgMax.value())
+                if (localState.numFramesToGenerateMax > 0 && localState.numFramesToGenerateMax < 6)
                 {
-                    Config::Instance()->FGDLSSGOverrideInterpolationCount = optiState.dlssgMfgMax.value();
+                    optiState.dlssgMfgMax = localState.numFramesToGenerateMax;
+                    LOG_TRACE("Saving original numFramesToGenerateMax: {}", optiState.dlssgMfgMax.value());
+
+                    // Volatile: the clamp holds for this run and leaves the ini setting alone.
+                    if (Config::Instance()->FGDLSSGOverrideInterpolationCount.has_value() &&
+                        Config::Instance()->FGDLSSGOverrideInterpolationCount.value() > optiState.dlssgMfgMax.value())
+                    {
+                        Config::Instance()->FGDLSSGOverrideInterpolationCount.set_volatile_value(
+                            optiState.dlssgMfgMax.value());
+                    }
                 }
             }
         }
@@ -1288,7 +1343,12 @@ sl::Result StreamlineHooks::hkslDLSSGGetState(const sl::ViewportHandle& viewport
             state.numFramesActuallyPresented = 1;
         }
 
-        state.numFramesToGenerateMax = 1;
+        // Struct version 1 ends at 56 bytes, ahead of this field. Never clobber an unlocked
+        // ceiling on the native backend: when the MFG patch landed, the game must see the
+        // opened maximum. Replacement providers (FFX/Nukems/Combo) keep the old behavior.
+        const bool nativeDlssgBackend = optiState.activeFgNvngx == FGNvngxReplacement::None;
+        if (originalStructVersion >= 2 && (MfgUnlock::UnlockedMax() == 0 || !nativeDlssgBackend))
+            state.numFramesToGenerateMax = 1;
 
         LOG_DEBUG("Status: {}, numFramesActuallyPresented: {}", magic_enum::enum_name(state.status),
                   state.numFramesActuallyPresented);
@@ -1736,6 +1796,28 @@ void StreamlineHooks::updateDlssgOptions()
         LOG_FUNC();
         hkslDLSSGSetOptions(lastDlssgViewport, lastDlssgOptions);
     }
+}
+
+void StreamlineHooks::applyMenuDlssgInterlock(sl::DLSSGOptions& options, bool dlssgPotentiallyActive)
+{
+    auto& state = State::Instance();
+
+    // Keyed on the overlay, not the swapchain: the submit this guards against is MenuOverlayVk's, and
+    // a title whose swapchainApi is not Vulkan can still have that overlay live.
+    if (state.swapchainApi != API::Vulkan && !state.menuOverlayIsVulkan)
+        return;
+
+    // Charged while the menu is hidden, spent by MenuOverlayVk::QueuePresent once it opens: the
+    // overlay holds off for 10 presents while DLSS-G unwinds. DX overlays do not use this delay.
+    if (dlssgPotentiallyActive && !MenuOverlayBase::IsVisible())
+        state.delayMenuRenderBy = 10;
+
+    if (!MenuOverlayBase::IsVisible())
+        return;
+
+    options.mode = sl::DLSSGMode::eOff;
+    options.flags |= sl::DLSSGFlags::eRetainResourcesWhenOff;
+    ReflexHooks::setDlssgFrameCount(0);
 }
 
 // SL INTERPOSER

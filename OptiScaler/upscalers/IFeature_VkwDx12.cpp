@@ -3,6 +3,7 @@
 #include "IFeature_VkwDx12.h"
 
 #include <Config.h>
+#include <dlssnr/DlssNr.h>
 #include <SysUtils.h>
 
 #include <proxies/DXGI_Proxy.h>
@@ -2043,9 +2044,70 @@ bool IFeature_VkwDx12::Init(VkInstance InInstance, VkPhysicalDevice InPD, VkDevi
 
     SetInitParameters(InParameters);
 
-    // Non-DLSS upscalers don't use the cmdList during Init
-    // We have more than one cmdList so unsure how that would even work
-    SetInit(dx12Feature->Init(_dx11on12Device, Dx12CommandList[0], InParameters));
+    // The list has to be recording, and what is recorded on it has to run.
+    //
+    // Same defect the D3D11 bridge had: every list here is closed the moment it is created, and the
+    // note this replaces said non-DLSS upscalers do not use the list during Init. True when written.
+    // DLSS and Ray Reconstruction are the only features whose InitInternal touches the argument --
+    // NVSDK_NGX_D3D12_CreateFeature records the model's weight upload and history initialisation onto
+    // it and requires the caller to submit it afterwards. Recorded onto a closed list it is silently
+    // discarded, CreateFeature still answers Success, and the model runs on state that was never
+    // uploaded.
+    //
+    // Latent here today only because no DLSS-on-12 variant is wired to the Vulkan provider yet. It
+    // stops being latent the moment one is.
+    HRESULT prep = Dx12CommandAllocator[0]->Reset();
+
+    if (prep != S_OK)
+        LOG_WARN("Init: allocator reset before feature creation failed: {:X}", (UINT) prep);
+
+    prep = Dx12CommandList[0]->Reset(Dx12CommandAllocator[0], nullptr);
+
+    if (prep != S_OK)
+        LOG_WARN("Init: command list reset before feature creation failed: {:X}", (UINT) prep);
+
+    const bool initialised = dx12Feature->Init(_dx11on12Device, Dx12CommandList[0], InParameters);
+
+    SetInit(initialised);
+
+    if (Dx12CommandList[0]->Close() == S_OK && Dx12CommandQueue != nullptr)
+    {
+        ID3D12CommandList* lists[] = { Dx12CommandList[0] };
+        Dx12CommandQueue->ExecuteCommandLists(1, lists);
+
+        // A fence of its own, created and destroyed here.
+        //
+        // Dx12Fence on this bridge is signalled with _frameCount and waited on against
+        // lastFrameToWaitFor, and _fenceValue belongs to the texture-copy fences. Borrowing either
+        // for a one-time init would perturb a scheme that works; a local fence cannot.
+        ID3D12Fence* initFence = nullptr;
+
+        if (_dx11on12Device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&initFence)) == S_OK &&
+            Dx12CommandQueue->Signal(initFence, 1) == S_OK)
+        {
+            if (initFence->GetCompletedValue() < 1)
+            {
+                HANDLE done = CreateEvent(nullptr, FALSE, FALSE, nullptr);
+
+                if (done != nullptr)
+                {
+                    if (initFence->SetEventOnCompletion(1, done) == S_OK)
+                        WaitForSingleObject(done, INFINITE);
+
+                    CloseHandle(done);
+                }
+            }
+
+            LOG_INFO("Init: feature creation work submitted and waited on");
+        }
+
+        SAFE_RELEASE(initFence);
+    }
+    else
+    {
+        LOG_WARN("Init: could not submit the feature creation work; a feature that records during "
+                 "creation will be missing it");
+    }
 
     return IsInited();
 }
@@ -2112,6 +2174,20 @@ bool IFeature_VkwDx12::Evaluate(VkCommandBuffer InCmdBuffer, NVSDK_NGX_Parameter
 
         LOG_DEBUG("Dispatch!!");
         dx12EvalResult = dx12Feature->Evaluate(cmdList, InParameters);
+
+        // The parameter block still holds the D3D12 resources written above -- the Vulkan handles are
+        // not put back until after this -- so the pass reads exactly what the upscaler just wrote.
+        static bool reportedNrOffer = false;
+
+        if (!reportedNrOffer)
+        {
+            reportedNrOffer = true;
+            LOG_INFO("DLSS-NR: the Vulkan bridge reached the hand-off (upscale ok: {}, enabled: {})",
+                     dx12EvalResult, Config::Instance()->DlssNrEnabled.value_or_default());
+        }
+
+        if (dx12EvalResult && Config::Instance()->DlssNrEnabled.value_or_default())
+            DlssNr::EvaluateAfterUpscale(cmdList, InParameters, Dx12CommandQueue);
 
     } while (false);
 
