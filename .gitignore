@@ -456,3 +456,5 @@ build_out
 /package_release.ps1
 /docs/MAINTAINER_NOTES.md
 /images/witcher3_mfg_6x_setup.png
+**/run-*/
+/upstream-report.md

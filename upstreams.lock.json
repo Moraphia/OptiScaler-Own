@@ -1,0 +1,9 @@
+{
+  "checkedAt": null,
+  "upstreams": [
+    { "id": "optiscaler", "repository": "optiscaler/OptiScaler", "ref": "master", "policy": "commit", "version": "6ded74bfa4fbb932fda7184c1263fc45380d5b1d", "url": "https://github.com/optiscaler/OptiScaler/commit/6ded74bfa4fbb932fda7184c1263fc45380d5b1d" },
+    { "id": "fidelityfx-sdk", "repository": "GPUOpen-LibrariesAndSDKs/FidelityFX-SDK", "ref": "main", "policy": "commit", "version": "60f4ea81909200d8542eca14dccb2628b763a9a3", "url": "https://github.com/GPUOpen-LibrariesAndSDKs/FidelityFX-SDK/commit/60f4ea81909200d8542eca14dccb2628b763a9a3" },
+    { "id": "xess", "repository": "intel/xess", "ref": "master", "policy": "commit", "version": "8fe81bdbbaf00b3c1b733fd0d830c333dc84e6f0", "url": "https://github.com/intel/xess/commit/8fe81bdbbaf00b3c1b733fd0d830c333dc84e6f0" },
+    { "id": "nvapi", "repository": "NVIDIA/nvapi", "ref": "main", "policy": "commit", "version": "9b181ea572f680327fe01a14a0f1f41c78034104", "url": "https://github.com/NVIDIA/nvapi/commit/9b181ea572f680327fe01a14a0f1f41c78034104" }
+  ]
+}

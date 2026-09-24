@@ -1,0 +1,30 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OptiScalerManager.App", "OptiScalerManager.App\OptiScalerManager.App.csproj", "{14A9D1A1-7C5D-4E0D-9DB9-9D8EDE9C8A01}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OptiScalerManager.Core", "OptiScalerManager.Core\OptiScalerManager.Core.csproj", "{F9E13C0E-7C8A-46F1-8E64-C9B25F1A3E0B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OptiScalerManager.Tests", "OptiScalerManager.Tests\OptiScalerManager.Tests.csproj", "{6B9C9E0B-46D1-4D52-B70E-1C6C8D3A9F01}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x64 = Debug|x64
+		Release|x64 = Release|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{14A9D1A1-7C5D-4E0D-9DB9-9D8EDE9C8A01}.Debug|x64.ActiveCfg = Debug|x64
+		{14A9D1A1-7C5D-4E0D-9DB9-9D8EDE9C8A01}.Debug|x64.Build.0 = Debug|x64
+		{14A9D1A1-7C5D-4E0D-9DB9-9D8EDE9C8A01}.Release|x64.ActiveCfg = Release|x64
+		{14A9D1A1-7C5D-4E0D-9DB9-9D8EDE9C8A01}.Release|x64.Build.0 = Release|x64
+		{F9E13C0E-7C8A-46F1-8E64-C9B25F1A3E0B}.Debug|x64.ActiveCfg = Debug|x64
+		{F9E13C0E-7C8A-46F1-8E64-C9B25F1A3E0B}.Debug|x64.Build.0 = Debug|x64
+		{F9E13C0E-7C8A-46F1-8E64-C9B25F1A3E0B}.Release|x64.ActiveCfg = Release|x64
+		{F9E13C0E-7C8A-46F1-8E64-C9B25F1A3E0B}.Release|x64.Build.0 = Release|x64
+		{6B9C9E0B-46D1-4D52-B70E-1C6C8D3A9F01}.Debug|x64.ActiveCfg = Debug|x64
+		{6B9C9E0B-46D1-4D52-B70E-1C6C8D3A9F01}.Debug|x64.Build.0 = Debug|x64
+		{6B9C9E0B-46D1-4D52-B70E-1C6C8D3A9F01}.Release|x64.ActiveCfg = Release|x64
+		{6B9C9E0B-46D1-4D52-B70E-1C6C8D3A9F01}.Release|x64.Build.0 = Release|x64
+	EndGlobalSection
+EndGlobal

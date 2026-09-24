@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "description": "Independent source and optional runtime dependency inventory; binary redistribution requires license review.",
+  "upstreams": [
+    { "id": "optiscaler", "repository": "optiscaler/OptiScaler", "ref": "master", "updatePolicy": "commit", "license": "MIT", "redistributionPolicy": "source-and-build", "enabled": true },
+    { "id": "fidelityfx-sdk", "repository": "GPUOpen-LibrariesAndSDKs/FidelityFX-SDK", "ref": "main", "updatePolicy": "commit", "license": "AMD-license", "redistributionPolicy": "review", "enabled": true },
+    { "id": "xess", "repository": "intel/xess", "ref": "master", "updatePolicy": "release", "license": "Intel-license", "redistributionPolicy": "review", "enabled": true },
+    { "id": "nvapi", "repository": "NVIDIA/nvapi", "ref": "main", "updatePolicy": "commit", "license": "NVIDIA-license", "redistributionPolicy": "review", "enabled": true },
+    { "id": "streamline", "repository": "NVIDIA-RTX/Streamline", "ref": "main", "updatePolicy": "release", "license": "NVIDIA-license", "redistributionPolicy": "review", "enabled": true },
+    { "id": "dlss", "repository": "NVIDIA/DLSS", "ref": "main", "updatePolicy": "release", "license": "NVIDIA-license", "redistributionPolicy": "review", "enabled": true },
+    { "id": "dlss-enabler", "repository": "artur-graniszewski/DLSS-Enabler", "ref": "main", "updatePolicy": "release", "license": "upstream", "redistributionPolicy": "review", "enabled": true },
+    { "id": "dlssg-to-fsr3", "repository": "Nukem9/dlssg-to-fsr3", "ref": "master", "updatePolicy": "release", "license": "GPL-3.0", "redistributionPolicy": "review", "enabled": true }
+  ]
+}

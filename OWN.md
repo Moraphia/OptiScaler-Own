@@ -13,6 +13,10 @@ upstream` and merge or rebase `upstream/master` into this feature branch after
 reviewing conflicts. `aurora-source` is reference-only; it is not the update
 base. Submodules follow the commits pinned by the official parent repository;
 update with `git submodule update --init --recursive` after an upstream merge.
+Run `tools/Check-Upstreams.ps1` for a read-only dependency report. GitHub API
+rate limits or other query errors produce an incomplete report and exit code 2;
+they must not be interpreted as "no updates". `-UpdateLock` only writes the lock
+when all queries succeed.
 
 ## Binary dependencies
 

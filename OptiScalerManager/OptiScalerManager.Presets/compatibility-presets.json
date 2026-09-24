@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "presets": [
+    {
+      "gameId": "neverness-to-everness",
+      "displayName": "Neverness to Everness",
+      "recommendedProxy": "winmm.dll",
+      "settings": { "FGInput": "upscaler", "FGOutput": "dlssg", "FGNvngxReplacement": "none", "DlssNrEnabled": "true" },
+      "warnings": [ "dxgi.dll may trigger illegal-module detection.", "Run inside the upscaler is not recommended for this title." ]
+    },
+    {
+      "gameId": "onimusha-way-of-the-sword",
+      "displayName": "Onimusha: Way of the Sword",
+      "recommendedProxy": "dxgi.dll",
+      "settings": { "FGInput": "upscaler", "FGOutput": "dlssg", "FGNvngxReplacement": "none", "DlssNrEnabled": "true" },
+      "warnings": [ "Keep Run inside the upscaler disabled to avoid severe visual corruption." ]
+    },
+    {
+      "gameId": "the-witcher-3-dx12",
+      "displayName": "The Witcher 3: Wild Hunt",
+      "recommendedProxy": "dxgi.dll",
+      "settings": { "FGInput": "upscaler", "FGOutput": "dlssg", "FGNvngxReplacement": "none" },
+      "warnings": [ "Preserve the game's native Streamline 1.5.6 runtime.", "Changing FG Input or FG Output requires a complete game restart." ]
+    },
+    {
+      "gameId": "the-blood-of-dawnwalker",
+      "displayName": "The Blood of Dawnwalker",
+      "recommendedProxy": "dxgi.dll",
+      "settings": { "FGOutput": "dlssg", "DlssNrEnabled": "true" },
+      "warnings": [ "DLSS 5 and RTX 40 6X MFG have been verified together for the documented build." ]
+    }
+  ]
+}
