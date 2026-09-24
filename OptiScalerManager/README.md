@@ -25,6 +25,10 @@ Each expert value is now displayed in a dedicated text field with a separate pre
 
 The Update Center defaults to `Moraphia/OptiScaler-Own` as the independent **stable** channel. You may change the repository (`owner/repo`) in the Update Center; clearing the field switches to read-only official metadata. It reads GitHub's latest full Release, not prereleases. Publish these assets with exact names:
 
+更新中心分别显示当前管理器文件版本、管理器已校验的本地游戏包版本、最新稳定版和每项状态（需要更新、已是最新、本地版本未知等）。新游戏包内的 `package-version.json` 提供版本与核心 SHA-256 标记；旧包若没有标记或校验不通过，界面会诚实显示“未知”。这不是逐个游戏安装目录的版本检测。
+
+“依赖矩阵”分两部分：随包运行库表列出本版实际发布的 DLSS、Streamline、NR 版本及来源；上游追踪表列出维护时参考的仓库与锁定引用。上游引用既不等于 DLL 文件版本，也不表示自动升级许可。
+
 - `OptiScalerManager-win-x64.zip` and `OptiScalerManager-win-x64.zip.manifest.json`: manager update. ZIP must contain `OptiScalerManager.exe` and `OptiScalerManager.Core.dll` at its root. It is staged beside other downloads; the running manager is not overwritten.
 - `OptiScaler-Package-win-x64.zip` and `OptiScaler-Package-win-x64.zip.manifest.json`: game installation package. ZIP must contain `OptiScaler.dll`, `OptiScaler.ini`, and the `OptiScaler/` runtime folder at its root. Installation still requires per-game preview and confirmation.
 
