@@ -880,6 +880,9 @@ class Config
     CustomOptional<bool> FGDLSSGForceDMFG { false };           // Overrides Opti's DLSSG mode to Dynamic
     CustomOptional<float> FGDLSSGFramerateTargetDMFG { 0.0f }; // 0.0 means auto-detects the display refresh rate
     CustomOptional<bool> FGDLSSGAdaMfgUnlock { false };
+    // Experimental: only open Streamline 2.14.1's wrapper ceiling; a separate backend must
+    // handle the real NGX provider. Does not enable the in-process Ada provider patches.
+    CustomOptional<bool> FGDLSSGAdaMfgWrapperOnly { false };
     CustomOptional<bool> FGDLSSGAdaBlackwellKernels { false }; // Blackwell kernels on Ada, see MfgUnlock
 
     // As per

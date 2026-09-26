@@ -99,6 +99,16 @@ public sealed class InstallationService : IInstallationService
         if (!FileUtilities.IsGameDirectory(game.InstallPath)) warnings.Add("The selected folder does not contain a top-level game executable.");
         if (!Proxies.Contains(options.ProxyDll, StringComparer.OrdinalIgnoreCase)) warnings.Add("Unsupported proxy DLL.");
         if (!Directory.Exists(options.PackageDirectory)) warnings.Add("Package directory was not found.");
+        var proxyTarget = Path.Combine(game.InstallPath, options.ProxyDll);
+        if (File.Exists(proxyTarget))
+        {
+            try
+            {
+                if (FileVersionInfo.GetVersionInfo(proxyTarget).OriginalFilename?.Contains("OptiScaler", StringComparison.OrdinalIgnoreCase) != true)
+                    warnings.Add($"Existing proxy DLL belongs to another program: {options.ProxyDll}. Choose another filename or resolve the conflict first.");
+            }
+            catch { warnings.Add($"Existing proxy DLL could not be identified: {options.ProxyDll}."); }
+        }
         var dll = Path.Combine(options.PackageDirectory, "OptiScaler.dll"); if (File.Exists(dll)) files.Add(new FilePlanEntry(dll, Path.Combine(game.InstallPath, options.ProxyDll), true, ExistingHash(Path.Combine(game.InstallPath, options.ProxyDll)))); else warnings.Add("OptiScaler.dll was not found in the package.");
         var ini = Path.Combine(options.PackageDirectory, "OptiScaler.ini"); if (File.Exists(ini)) files.Add(new FilePlanEntry(ini, Path.Combine(game.InstallPath, "OptiScaler.ini"), true, ExistingHash(Path.Combine(game.InstallPath, "OptiScaler.ini")))); else warnings.Add("OptiScaler.ini was not found in the package.");
         foreach (var folder in new[] { "OptiScaler", "Licenses" })
@@ -113,7 +123,7 @@ public sealed class InstallationService : IInstallationService
                 files.Add(new FilePlanEntry(source, destination, true, ExistingHash(destination)));
             }
         }
-        return Task.FromResult(new OperationPlan { Files = files, Warnings = warnings, CanProceed = files.Count > 0 && warnings.All(x => !x.Contains("not found", StringComparison.OrdinalIgnoreCase) && !x.Contains("Unsupported", StringComparison.OrdinalIgnoreCase)) });
+        return Task.FromResult(new OperationPlan { Files = files, Warnings = warnings, CanProceed = files.Count > 0 && warnings.All(x => !x.Contains("not found", StringComparison.OrdinalIgnoreCase) && !x.Contains("Unsupported", StringComparison.OrdinalIgnoreCase) && !x.Contains("Existing proxy", StringComparison.OrdinalIgnoreCase)) });
     }
     public async Task<OperationResult> AdoptLegacyAsync(GameEntry game, CancellationToken cancellationToken = default)
     {
@@ -162,6 +172,13 @@ public sealed class InstallationService : IInstallationService
                 if (!FileUtilities.Sha256(file.Source).Equals(FileUtilities.Sha256(file.Destination), StringComparison.OrdinalIgnoreCase))
                     throw new InvalidDataException($"Hash verification failed for {Path.GetFileName(file.Destination)}.");
                 progress?.Report(new(OperationStage.Copy, 65, $"Installed {Path.GetFileName(file.Destination)}"));
+            }
+            if (options.IniOverrides is { Count: > 0 })
+            {
+                var iniPath = Path.Combine(game.InstallPath, "OptiScaler.ini");
+                var ini = IniDocument.Load(iniPath);
+                foreach (var change in options.IniOverrides) ini.Set(change.Section, change.Key, change.Value);
+                ini.SaveAtomic(iniPath);
             }
             if (options.SyncRuntimes)
             {

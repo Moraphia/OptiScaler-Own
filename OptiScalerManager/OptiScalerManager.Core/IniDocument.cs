@@ -100,12 +100,15 @@ public sealed class IniDocument
 public sealed class IniEntry : System.ComponentModel.INotifyPropertyChanged
 {
     private string _value = "";
+    private string? _category;
+    private string? _description;
+    private string? _documentation;
     public string Section { get; init; } = "";
     public string Key { get; init; } = "";
     public string Value { get => _value; set { if (_value == value) return; _value = value; PropertyChanged?.Invoke(this, new System.ComponentModel.PropertyChangedEventArgs(nameof(Value))); } }
     public event System.ComponentModel.PropertyChangedEventHandler? PropertyChanged;
-    public string Category => ConfigMetadata.Category(Section);
-    public string Description => ConfigMetadata.Description(Section, Key);
-    public string Documentation => ConfigMetadata.Documentation(Section, Key);
+    public string Category => _category ??= ConfigMetadata.Category(Section);
+    public string Description => _description ??= ConfigMetadata.Description(Section, Key);
+    public string Documentation => _documentation ??= ConfigMetadata.Documentation(Section, Key);
     public IReadOnlyList<string> Options => ConfigMetadata.Options(Section, Key, Value);
 }

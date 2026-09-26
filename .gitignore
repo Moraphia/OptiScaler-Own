@@ -452,6 +452,7 @@ build_out
 /dist/
 /OptiScalerManager/publish/
 /OptiScalerManager/publish-next/
+/erss/
 **/bin/
 **/obj/
 /.github/workflows/just_build_fast.yml

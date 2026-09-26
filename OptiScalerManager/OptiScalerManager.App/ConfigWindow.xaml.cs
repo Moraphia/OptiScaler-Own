@@ -1,19 +1,22 @@
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
+using System.Windows.Threading;
 using OptiScalerManager.Core;
 
 namespace OptiScalerManager.App;
 
-public partial class ConfigWindow : Window
+public partial class ConfigWindow : Wpf.Ui.Controls.FluentWindow
 {
     private readonly GameEntry _game;
     private readonly ConfigService _config = new();
-    private readonly ObservableCollection<IniEntry> _entries = [];
+    private IReadOnlyList<IniEntry> _entries = [];
     private readonly ObservableCollection<ConfigSnapshot> _snapshots = [];
     private readonly Dictionary<string, string> _loadedBasic = new(StringComparer.OrdinalIgnoreCase);
+    private readonly DispatcherTimer _searchTimer = new() { Interval = TimeSpan.FromMilliseconds(180) };
     private IniDocument? _document;
     private string? _loadedHash;
 
@@ -22,30 +25,42 @@ public partial class ConfigWindow : Window
         InitializeComponent();
         _game = game;
         GamePath.Text = game.InstallPath;
-        EntriesGrid.ItemsSource = _entries;
-        var expertView = CollectionViewSource.GetDefaultView(_entries);
-        expertView.GroupDescriptions.Add(new PropertyGroupDescription(nameof(IniEntry.Category)));
-        expertView.SortDescriptions.Add(new System.ComponentModel.SortDescription(nameof(IniEntry.Category), System.ComponentModel.ListSortDirection.Ascending));
-        expertView.SortDescriptions.Add(new System.ComponentModel.SortDescription(nameof(IniEntry.Section), System.ComponentModel.ListSortDirection.Ascending));
+        _searchTimer.Tick += (_, _) => { _searchTimer.Stop(); ApplyExpertFilter(); };
         SnapshotBox.ItemsSource = _snapshots;
         ConfigTabs.SelectedIndex = openExpert ? 1 : 0;
-        LoadConfig();
-        Loaded += async (_, _) => await LoadSnapshotsAsync();
+        Loaded += async (_, _) => { await LoadConfigAsync(); await LoadSnapshotsAsync(); };
+        Closed += (_, _) => _searchTimer.Stop();
     }
 
-    private void LoadConfig()
+    private async Task LoadConfigAsync()
     {
         try
         {
+            StatusText.Text = "正在加载配置…";
             var path = Path.Combine(_game.InstallPath, "OptiScaler.ini");
-            _document = IniDocument.Load(path);
-            _loadedHash = FileUtilities.Sha256(path);
-            _entries.Clear();
-            foreach (var entry in _document.GetEntries())
+            var loaded = await Task.Run(() =>
             {
+                var document = IniDocument.Load(path);
+                var hash = FileUtilities.Sha256(path);
+                var entries = document.GetEntries();
+                foreach (var entry in entries) { _ = entry.Category; _ = entry.Description; }
+                var capabilities = string.Join("\n", CapabilityService.Inspect(_game.InstallPath, document).Select(x => $"{x.Feature}：{x.Detail}"));
+                return (document, hash, entries, capabilities);
+            });
+            if (!IsLoaded) return;
+            _document = loaded.document;
+            _loadedHash = loaded.hash;
+            _entries = loaded.entries;
+            foreach (var entry in _entries)
                 entry.PropertyChanged += (_, args) => { if (args.PropertyName == nameof(IniEntry.Value) && EntriesGrid.SelectedItem == entry) ShowExpertDetails(entry); };
-                _entries.Add(entry);
+            var expertView = CollectionViewSource.GetDefaultView(_entries);
+            using (expertView.DeferRefresh())
+            {
+                expertView.SortDescriptions.Add(new SortDescription(nameof(IniEntry.Category), ListSortDirection.Ascending));
+                expertView.SortDescriptions.Add(new SortDescription(nameof(IniEntry.Section), ListSortDirection.Ascending));
             }
+            EntriesGrid.ItemsSource = expertView;
+            ApplyExpertFilter();
             _loadedBasic.Clear();
             Set(UpscalerBox, "Upscalers", "Dx12Upscaler");
             Set(FgEnabledBox, "FrameGen", "Enabled");
@@ -54,6 +69,7 @@ public partial class ConfigWindow : Window
             Set(ReplacementBox, "FrameGen", "FGNvngxReplacement");
             Set(MfgBox, "DLSSG", "InterpolationCount");
             Set(AdaUnlockBox, "DLSSG", "AdaMfgUnlock");
+            Set(AdaWrapperBox, "DLSSG", "AdaMfgWrapperOnly");
             Set(BlackwellKernelsBox, "DLSSG", "AdaBlackwellKernels");
             Set(NrBox, "DlssNr", "Enabled");
             Set(NrDualBox, "DlssNr", "DualFeature");
@@ -62,7 +78,7 @@ public partial class ConfigWindow : Window
             LogBox.IsThreeState = true;
             LogBox.IsChecked = log.Equals("true", StringComparison.OrdinalIgnoreCase) ? true : log.Equals("false", StringComparison.OrdinalIgnoreCase) ? false : null;
             StatusText.Text = $"已加载 {_entries.Count} 个配置项";
-            CapabilityText.Text = string.Join("\n", CapabilityService.Inspect(_game.InstallPath, _document).Select(x => $"{x.Feature}：{x.Detail}"));
+            CapabilityText.Text = loaded.capabilities;
         }
         catch (Exception ex) { StatusText.Text = ex.Message; }
     }
@@ -84,8 +100,15 @@ public partial class ConfigWindow : Window
     private void ExpertSearchChanged(object sender, TextChangedEventArgs e)
     {
         if (EntriesGrid?.ItemsSource is null) return;
+        _searchTimer.Stop();
+        _searchTimer.Start();
+    }
+
+    private void ApplyExpertFilter()
+    {
+        if (EntriesGrid.ItemsSource is null) return;
         var query = ExpertSearchBox.Text.Trim();
-        var view = CollectionViewSource.GetDefaultView(_entries);
+        var view = CollectionViewSource.GetDefaultView(EntriesGrid.ItemsSource);
         view.Filter = item => item is IniEntry entry &&
             (query.Length == 0 || entry.Category.Contains(query, StringComparison.OrdinalIgnoreCase) ||
              entry.Description.Contains(query, StringComparison.OrdinalIgnoreCase) ||
@@ -103,6 +126,7 @@ public partial class ConfigWindow : Window
     }
 
     private void ShowExpertDetails(IniEntry entry) => ExpertDetailText.Text = ConfigMetadata.DetailedExplanation(entry.Section, entry.Key, entry.Value);
+    private void CloseClick(object sender, RoutedEventArgs e) => Close();
 
     private void ExpertPresetClick(object sender, RoutedEventArgs e)
     {
@@ -140,7 +164,15 @@ public partial class ConfigWindow : Window
         AddChanged(changes, "FrameGen", "FGNvngxReplacement", Text(ReplacementBox));
         AddChanged(changes, "DLSSG", "InterpolationCount", Text(MfgBox));
         AddChanged(changes, "DLSSG", "AdaMfgUnlock", Text(AdaUnlockBox));
+        AddChanged(changes, "DLSSG", "AdaMfgWrapperOnly", Text(AdaWrapperBox));
         AddChanged(changes, "DLSSG", "AdaBlackwellKernels", Text(BlackwellKernelsBox));
+        var effectiveUnlock = changes.LastOrDefault(x => x.Section.Equals("DLSSG", StringComparison.OrdinalIgnoreCase) && x.Key.Equals("AdaMfgUnlock", StringComparison.OrdinalIgnoreCase))?.Value ?? _document.Get("DLSSG", "AdaMfgUnlock");
+        var effectiveWrapper = changes.LastOrDefault(x => x.Section.Equals("DLSSG", StringComparison.OrdinalIgnoreCase) && x.Key.Equals("AdaMfgWrapperOnly", StringComparison.OrdinalIgnoreCase))?.Value ?? _document.Get("DLSSG", "AdaMfgWrapperOnly");
+        if (string.Equals(effectiveUnlock, "true", StringComparison.OrdinalIgnoreCase) && string.Equals(effectiveWrapper, "true", StringComparison.OrdinalIgnoreCase))
+        {
+            StatusText.Text = "AdaMfgUnlock 与 AdaMfgWrapperOnly 不应同时启用。法环 ERSS 共存方案请将前者设为 false。";
+            return;
+        }
         AddChanged(changes, "DlssNr", "Enabled", Text(NrBox));
         AddChanged(changes, "DlssNr", "DualFeature", Text(NrDualBox));
         AddChanged(changes, "DlssNr", "DualEnlarger", Text(NrEnlargerBox));
@@ -173,7 +205,7 @@ public partial class ConfigWindow : Window
         if (MessageBox.Show(this, $"确认恢复快照 {snapshot.Id}？", "恢复快照", MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes) return;
         var result = await _config.RestoreSnapshotAsync(_game, snapshot);
         StatusText.Text = result.Message;
-        if (result.Success) { LoadConfig(); await LoadSnapshotsAsync(); }
+        if (result.Success) { await LoadConfigAsync(); await LoadSnapshotsAsync(); }
     }
 
     private async Task LoadSnapshotsAsync()

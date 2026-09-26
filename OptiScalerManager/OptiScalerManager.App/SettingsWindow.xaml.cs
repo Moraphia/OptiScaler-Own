@@ -4,7 +4,7 @@ using OptiScalerManager.Core;
 
 namespace OptiScalerManager.App;
 
-public partial class SettingsWindow : Window
+public partial class SettingsWindow : Wpf.Ui.Controls.FluentWindow
 {
     private readonly GameEntry? _game;
 
@@ -21,7 +21,7 @@ public partial class SettingsWindow : Window
 
     private void SaveClick(object sender, RoutedEventArgs e)
     {
-        SettingsStore.Current.Language = Text(LanguageBox);
+        SettingsStore.Current.Language = LanguageBox.SelectedValue?.ToString() ?? "zh-CN";
         SettingsStore.Current.ProxyDll = Text(ProxyBox);
         SettingsStore.Current.GraphicsApi = Text(GraphicsApiBox);
         SettingsStore.Current.ReduceAnimations = ReduceAnimationsBox.IsChecked == true;

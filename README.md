@@ -31,6 +31,16 @@
 - **DLSS 5 Neural Rendering**：实验性桥接模块。游戏包包含 Aurora 社区发布的 `nvngx_dlssnr.dll` 310.8 和本分支编译的 `nvngx.dll_dlssnr.dll` 转发器；前者签名校验为 `HashMismatch`，不能视为 NVIDIA 官方签名原版。来源及哈希见下文。高画质设置可能显著增加显存、功耗和帧时间。
 - **OptiScaler Manager**：游戏发现、安装预览、备份与修复、状态检查、中文常用/专家配置以及稳定版更新。游戏内 `Insert` 菜单仍由 OptiScaler 提供，管理器并不取代它。
 
+v0.2.4 加入[多管线管理入口](OptiScalerManager/README.md#多管线与法环共存方案)：为无原生输入的游戏准备 ReShade＋NR Bridge 组件安装，为窗口和视频场景提供 SAOG Magpie 下载／启动。它们保持独立进程／插件，不是 OptiScaler 的新渲染后端。
+
+### 《艾尔登法环》ERSS 共存配置（可选）
+
+这条路线使用玩家自己的 **ERSS `DXGI.dll`＋本包 Opti `winmm.dll`＋玩家自行取得的 RTXMFG `dinput8.dll`**。从 [ERSS 作者页面](https://www.patreon.com/huutaiii/posts/114748623)取得并安装 ERSS；从 [RTXMFG 作者 Release](https://github.com/dashdogy/RTX40MFG-Unlock/releases)下载 RTX MFG DLL，管理器可在目标 `dinput8.dll` 尚不存在时导入。管理器与游戏包**均不提供、上传或自动下载 ERSS 付费 DLL**，也不捆绑慢动作附加组件。ERSS 的 Streamline 需 2.14.1 或更新；管理器只检测版本，默认不覆盖玩家的 ERSS 文件。
+
+管理器识别 `eldenring.exe` 后选择 `winmm.dll` 代理，保留 ERSS 的 `DXGI.dll`；前置齐全时为 Opti 写入 `AdaMfgWrapperOnly=true`、`AdaMfgUnlock=false`、`FGInput=auto`、`FGOutput=auto`。打开“渲染管线”可明确应用 3×安全起点，或关闭高倍率并退回 ERSS 2×；两项操作都备份 Opti/ERSS 配置，需先退出游戏，重启后才生效。关闭不会删除玩家自行安装的 RTXMFG DLL。`AdaMfgUnlock` 是另一条 Opti 自身的实验路线，不应在此共存配置中同时开启。是否真正呈现 3–6×必须进游戏核对，**菜单和 DLL 检测不是成功证明**。
+
+上述组合在一台 RTX 4080 SUPER、ERSS 5.1.0、Streamline 2.14.1、RTXMFG 1.3.3 Hotfix 2 的离线法环环境中测试过 3×和 6×实际呈现。6×的操作延迟可能明显高于 3×；建议 3×日常使用。这不是所有显卡、驱动、ERSS 版本的通用保证。仅在明确关闭反作弊的离线环境尝试，不提供反作弊绕过。
+
 这些扩展并非所有游戏或硬件都能使用。若遇到启动崩溃、Output/FG 加载失败或缺失 DLL，请先检查实际加载的代理文件、游戏自带运行库、游戏日志与 `OptiScaler.ini`，不要把游戏菜单里出现的选项视为功能已成功启用。
 
 ## 更新与维护范围
@@ -39,7 +49,7 @@
 | --- | --- | --- |
 | 本分支稳定版 | 管理器打开“更新中心”时读取本仓库 `releases/latest`；分别下载、校验管理器包和游戏包 | 发布新版本、提供两份 ZIP 及对应 SHA-256 清单；管理器更新需退出后手动替换 |
 | 核心源码及 SDK | [`upstreams.json`](upstreams.json) 列有官方 OptiScaler、AMD FidelityFX、Intel XeSS、NVIDIA NVAPI、Streamline、DLSS、DLSS-Enabler、dlssg-to-fsr3；[`Check-Upstreams.ps1`](tools/Check-Upstreams.ps1) 可手动比对 GitHub commit/Release | 审阅上游变更，按需更新子模块、移植补丁、重新构建和游戏测试；**目前没有自动同步、自动 PR 或六小时定时检查** |
-| 随包二进制 | 管理器的 `dependency-inventory.json` 已逐个记录 v0.2.3 正式包的 28 个 DLL 的版本、签名、哈希与归属/推定来源；这不是自动最新版本检查或逐游戏扫描 | 新版发布包重新生成清单，核对来源、许可与兼容性，再决定是否换版 |
+| 随包二进制 | 管理器的 `dependency-inventory.json` 已逐个记录 v0.2.4 正式包的 28 个 DLL 的版本、签名、哈希与归属/推定来源；ERSS 等用户前置另列，不包含在包内 | 新版发布包重新生成清单，核对来源、许可与兼容性，再决定是否换版 |
 
 游戏内 Insert 菜单仍有本分支版本的“新版可用”判断（将内置版本与本仓库最新稳定版 tag 比较）。管理器则主要显示最新 Release 和下载入口，**当前不会把本地已安装版本与远端版本逐一比较并标出哪些游戏文件已过期**；依赖矩阵也只是读取随管理器发布的静态锁文件，不会在界面里实时查询每个上游。
 
@@ -49,7 +59,7 @@
 
 安装管理器的运行库同步默认启用，但只查找**已经存在**的同名游戏运行库并备份后更新；发现 `sl.*.dll` 为 Streamline **1.x 或无法识别主版本**时，会跳过该文件，不把它硬替换成 2.14.1。游戏自身仍可使用它的旧 Streamline；OptiScaler 的 `FGOutput=dlssg` 则从 `OptiScaler/streamline/` 加载私有副本。两套运行库共存不代表游戏的旧 1.x FG 输入自动获得 6×，也不保证不冲突；游戏更新后可用管理器手动检查/修复，当前没有 Aurora 的 `Check_DLSS_Runtime.bat` 式单独重检脚本。对可识别的 Streamline 2.x，同步可能替换游戏已有文件，安装前务必看预览。
 
-没有原生 FG 的游戏应先确认是否有可接入的超分输入：DX12 游戏可尝试实验性的 `FGInput=upscaler`（OptiFG）配 FSR-FG/XeFG；这**不是** NVIDIA 原生 6× MFG。原版《艾尔登法环》既没有原生超分也没有原生 FG，单独复制本包不能生成输入；社区 ERSS-FG 等游戏集成可提供 DLSSG via Streamline 输入，但能否稳定达到 6×还需逐游戏验证。请仅在不受反作弊保护的单机环境尝试，不要绕过反作弊。
+没有原生 FG 的游戏应先确认是否有可接入的超分输入：DX12 游戏可尝试实验性的 `FGInput=upscaler`（OptiFG）配 FSR-FG/XeFG；这**不是** NVIDIA 原生 6× MFG。原版《艾尔登法环》既没有原生超分也没有原生 FG，单独复制本包不能生成输入；ERSS 可提供输入。v0.2.4 的 ERSS＋Opti＋RTXMFG 组合有一次本机 6×人工验证，不等于所有法环环境都能稳定达到 6×。请仅在不受反作弊保护的单机环境尝试，不要绕过反作弊。
 
 ## 自行构建
 

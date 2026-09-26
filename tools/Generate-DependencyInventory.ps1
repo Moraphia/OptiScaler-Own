@@ -1,15 +1,16 @@
 param(
     [Parameter(Mandatory = $true)][string]$PackageDirectory,
     [Parameter(Mandatory = $true)][string]$PackageZip,
-    [Parameter(Mandatory = $true)][string]$OutputPath
+    [Parameter(Mandatory = $true)][string]$OutputPath,
+    [string]$PackageVersion = '0.2.3',
+    [string]$ExpectedSha256 = 'C1117E937B0D2A593D80F71106F3A33A2D83491E91FF6E94F3514784CF408D36'
 )
 
 $ErrorActionPreference = 'Stop'
 $package = (Resolve-Path -LiteralPath $PackageDirectory).Path
 $zip = (Resolve-Path -LiteralPath $PackageZip).Path
-$expected = 'C1117E937B0D2A593D80F71106F3A33A2D83491E91FF6E94F3514784CF408D36'
-if ((Get-FileHash -LiteralPath $zip -Algorithm SHA256).Hash -ne $expected) {
-    throw 'The input is not the verified v0.2.3 release package.'
+if ($ExpectedSha256 -notmatch '^[0-9A-Fa-f]{64}$' -or (Get-FileHash -LiteralPath $zip -Algorithm SHA256).Hash -ne $ExpectedSha256) {
+    throw 'The input package hash does not match the explicit expected SHA-256.'
 }
 
 function Get-Source([string]$relative) {
@@ -40,7 +41,7 @@ $rows = @(Get-ChildItem -LiteralPath $package -Recurse -File |
             sha256 = (Get-FileHash -LiteralPath $_.FullName -Algorithm SHA256).Hash
         }
     })
-if ($rows.Count -ne 28) { throw "Expected 28 DLLs in v0.2.3 release; found $($rows.Count)." }
+if ($rows.Count -ne 28) { throw "Expected 28 DLLs in the release; found $($rows.Count)." }
 Add-Type -AssemblyName System.IO.Compression.FileSystem
 $archive = [IO.Compression.ZipFile]::OpenRead($zip)
 try {
@@ -56,6 +57,6 @@ try {
         if ($archiveHash -ne $row.sha256) { throw "Extracted DLL differs from release ZIP: $($row.path)" }
     }
 } finally { $archive.Dispose() }
-$inventory = [ordered]@{ packageVersion = '0.2.3'; packageSha256 = $expected; dllCount = $rows.Count; files = $rows }
+$inventory = [ordered]@{ packageVersion = $PackageVersion; packageSha256 = $ExpectedSha256.ToUpperInvariant(); dllCount = $rows.Count; files = $rows }
 $inventory | ConvertTo-Json -Depth 5 | Set-Content -LiteralPath $OutputPath -Encoding UTF8
 Write-Output "Generated $($rows.Count) verified release DLL entries."

@@ -4,7 +4,7 @@ using OptiScalerManager.Core;
 
 namespace OptiScalerManager.App;
 
-public partial class InstallPreviewWindow : Window
+public partial class InstallPreviewWindow : Wpf.Ui.Controls.FluentWindow
 {
     public sealed record PreviewFile(string Action, string Destination, string Detail);
 

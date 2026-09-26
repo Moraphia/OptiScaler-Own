@@ -2167,6 +2167,8 @@ void StreamlineHooks::hookDlssg(HMODULE slDlssg)
         return;
     }
 
+    MfgUnlock::TryApplyStreamline(slDlssg);
+
     if (o_dlssg_slGetPluginFunction)
         unhookDlssg();
 

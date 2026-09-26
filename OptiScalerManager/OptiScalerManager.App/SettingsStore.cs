@@ -22,6 +22,11 @@ public static class SettingsStore
         {
             if (!File.Exists(PathName)) return;
             Current = JsonSerializer.Deserialize<UserSettings>(File.ReadAllText(PathName), new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? new UserSettings();
+            Current.Language = Current.Language switch
+            {
+                "en-US" or "English" => "en-US",
+                _ => "zh-CN"
+            };
         }
         catch { Current = new UserSettings(); }
     }

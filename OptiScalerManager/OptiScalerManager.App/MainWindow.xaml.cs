@@ -10,7 +10,7 @@ using OptiScalerManager.Core;
 
 namespace OptiScalerManager.App;
 
-public partial class MainWindow : Window
+public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
 {
     private readonly ObservableCollection<GameEntry> _games = [];
     private readonly SteamDiscoveryService _discovery = new();
@@ -66,10 +66,16 @@ public partial class MainWindow : Window
         var selected = GamesList.SelectedItem is GameEntry;
         CommonConfigButton.IsEnabled = selected;
         ExpertConfigButton.IsEnabled = selected;
+        PipelineButton.IsEnabled = selected;
         if (GamesList.SelectedItem is GameEntry game) await InspectAsync(game);
     }
     private void CommonConfigClick(object sender, RoutedEventArgs e) => OpenConfig(false);
+    private void CloseClick(object sender, RoutedEventArgs e) => Close();
     private void ExpertConfigClick(object sender, RoutedEventArgs e) => OpenConfig(true);
+    private void PipelineClick(object sender, RoutedEventArgs e)
+    {
+        if (GamesList.SelectedItem is GameEntry game) new PipelineWindow(game) { Owner = this }.ShowDialog();
+    }
     private void OpenConfig(bool expert)
     {
         if (GamesList.SelectedItem is not GameEntry game) return;
@@ -92,6 +98,8 @@ public partial class MainWindow : Window
             var needsRepair = integrity is not null && !integrity.Success;
             SelectedName.Text = game.DisplayName;
             SelectedPath.Text = game.InstallPath;
+            var advice = PipelineAdvisor.For(game);
+            PipelineAdviceText.Text = advice.Game == KnownGame.Other ? "" : $"专属方案 · {advice.Requirements} 详情见“渲染管线”。";
             InstallStatus.Text = needsRepair ? "需要修复" : result.InstallState switch { InstallState.Installed => "已安装", InstallState.Partial => "安装不完整", InstallState.Legacy => "遗留安装", InstallState.NeedsRepair => "需要修复", _ => "未安装" };
             InstallStatus.Foreground = needsRepair ? (System.Windows.Media.Brush)FindResource("Warning") : result.InstallState == InstallState.Installed ? (System.Windows.Media.Brush)FindResource("Success") : (System.Windows.Media.Brush)FindResource("Warning");
             InstallDetail.Text = integrity is not null ? integrity.Message : result.RuntimeSyncStatus ?? "等待安装";
@@ -120,11 +128,18 @@ public partial class MainWindow : Window
     {
         if (GamesList.SelectedItem is not GameEntry game) { MessageBox.Show(this, "请先选择游戏。", "安装", MessageBoxButton.OK, MessageBoxImage.Information); return; }
         var package = FindPackageDirectory(); if (package is null) { MessageBox.Show(this, "请将自己的构建包放到管理器旁的 Package 目录。当前更新中心只提供官方版本信息，不会下载并替换此独立构建。", "缺少安装包", MessageBoxButton.OK, MessageBoxImage.Warning); return; }
+        var profile = KnownGameInstallProfiles.For(game, SettingsStore.Current.ProxyDll);
+        if (profile.Notices.Count > 0 && MessageBox.Show(this,
+            string.Join("\n\n", profile.Notices) + $"\n\n本次将使用 {profile.ProxyDll}。继续预览？",
+            "游戏专属方案", MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes) return;
+        var options = new InstallOptions(package, profile.ProxyDll,
+            SyncRuntimes: PipelineAdvisor.For(game).Game != KnownGame.EldenRing,
+            IniOverrides: profile.IniOverrides);
         OperationPlan plan;
         try
         {
             Mouse.OverrideCursor = System.Windows.Input.Cursors.Wait;
-            plan = await _installer.PreviewInstallAsync(game, new InstallOptions(package, SettingsStore.Current.ProxyDll));
+            plan = await _installer.PreviewInstallAsync(game, options);
         }
         catch (Exception ex) { MessageBox.Show(this, ex.Message, "安装预检查失败", MessageBoxButton.OK, MessageBoxImage.Error); return; }
         finally { Mouse.OverrideCursor = null; }
@@ -135,13 +150,14 @@ public partial class MainWindow : Window
         }
         if (new InstallPreviewWindow(game, plan) { Owner = this }.ShowDialog() != true) return;
         _operationLog.Clear(); AddOperation("开始安装预览已确认");
-        var result = await _installer.InstallAsync(game, new InstallOptions(package, SettingsStore.Current.ProxyDll), new Progress<OperationProgress>(ReportOperation));
+        var result = await _installer.InstallAsync(game, options, new Progress<OperationProgress>(ReportOperation));
         AddOperation(result.Success ? "完成 · 安装成功" : $"失败 · {result.Message}");
         MessageBox.Show(this, result.Message, result.Success ? "安装完成" : "安装失败", MessageBoxButton.OK, result.Success ? MessageBoxImage.Information : MessageBoxImage.Error); await InspectAsync(game);
     }
     private async void UninstallClick(object sender, RoutedEventArgs e) { if (GamesList.SelectedItem is GameEntry game && MessageBox.Show(this, "确定恢复原始文件并卸载 OptiScaler？", "确认卸载", MessageBoxButton.YesNo, MessageBoxImage.Warning) == MessageBoxResult.Yes) { _operationLog.Clear(); AddOperation("开始卸载"); var result = await _installer.UninstallAsync(game, new Progress<OperationProgress>(ReportOperation)); AddOperation(result.Success ? "完成 · 原始文件已恢复" : $"失败 · {result.Message}"); MessageBox.Show(this, result.Message, "卸载", MessageBoxButton.OK, result.Success ? MessageBoxImage.Information : MessageBoxImage.Error); await InspectAsync(game); } }
     private void LaunchClick(object sender, RoutedEventArgs e) { if (GamesList.SelectedItem is GameEntry game) try { ProcessService.Launch(game); } catch (Exception ex) { MessageBox.Show(this, ex.Message, "启动失败", MessageBoxButton.OK, MessageBoxImage.Error); } }
     private void UpdateClick(object sender, RoutedEventArgs e) => new UpdateWindow { Owner = this }.ShowDialog();
+    private void MediaClick(object sender, RoutedEventArgs e) => new PipelineWindow(null) { Owner = this }.ShowDialog();
     private void SettingsClick(object sender, RoutedEventArgs e) => new SettingsWindow(GamesList.SelectedItem as GameEntry) { Owner = this }.ShowDialog();
     private void UpdateCount() => GameCount.Text = _games.Count.ToString();
     private void LanguageChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)

@@ -1,6 +1,6 @@
 ﻿{
-    "packageVersion":  "0.2.3",
-    "packageSha256":  "C1117E937B0D2A593D80F71106F3A33A2D83491E91FF6E94F3514784CF408D36",
+    "packageVersion":  "0.2.4",
+    "packageSha256":  "BDF668E08B5B5E6CEE86E64BF8AAB8F40B2FA42E348E89559E0F37DA4F208B7A",
     "dllCount":  28,
     "files":  [
                   {
@@ -15,7 +15,7 @@
                       "version":  "10.0.0.1",
                       "source":  "This repository (built from source)",
                       "signature":  "NotSigned",
-                      "sha256":  "6B6598F5F03386970A5C1CD6B07516F3B955CF4D43A631792F19F314783AF499"
+                      "sha256":  "47E62EA02D8B35246CA4325290009886CA224746CBAFF45E2E486AD536F622B0"
                   },
                   {
                       "path":  "OptiScaler/amd_fidelityfx_framegeneration_dx12.dll",

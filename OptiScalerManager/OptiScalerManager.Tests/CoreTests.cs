@@ -11,9 +11,13 @@ public sealed class CoreTests : IDisposable
         var directory = AppContext.BaseDirectory;
         var inventory = await OptiScalerManager.Core.DependencyInventoryService.LoadAsync(Path.Combine(directory, "dependency-inventory.json"));
         var modules = await OptiScalerManager.Core.DependencyInventoryService.LoadSubmodulesAsync(Path.Combine(directory, "source-submodules.json"));
-        Assert.Equal("0.2.3", inventory.PackageVersion);
+        var pipelines = await OptiScalerManager.Core.DependencyInventoryService.LoadPipelineAsync(Path.Combine(directory, "pipeline-dependencies.json"));
+        Assert.Equal("0.2.4", inventory.PackageVersion);
         Assert.Equal(28, inventory.Files.Count);
         Assert.Equal(9, modules.Count);
+        Assert.Equal(9, pipelines.Count);
+        Assert.Contains(pipelines, x => x.Name == "ERSS（法环）" && x.Distribution.Contains("付费 DLL"));
+        Assert.Contains(pipelines, x => x.Name == "RTXMFG" && x.Version.Contains("1.3.3"));
         Assert.Contains(inventory.Files, x => x.Path == "OptiScaler/nvngx_dlssnr.dll" && x.Signature == "HashMismatch");
         Assert.Contains(inventory.Files, x => x.Path == "nvngx.dll_dlssnr.dll" && x.Version == "not specified");
         Assert.Contains(inventory.Files, x => x.Path == "OptiScaler/streamline/sl.dlss_nr.dll" && x.Version == "2.13.0.0");

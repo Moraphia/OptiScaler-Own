@@ -105,6 +105,7 @@ public static class ConfigMetadata
             "dlssg.forcedmfg" => "在 OptiScaler 自有 DLSSG 输出中强制 Dynamic MFG。",
             "dlssg.frameratetargetdmfg" => "Dynamic MFG 的目标帧率；非零时不能手动固定倍率。",
             "dlssg.adamfgunlock" => "RTX 40 多帧生成实验性解锁；不保证游戏或 DLL 支持。",
+            "dlssg.adamfgwrapperonly" => "只扩展 ERSS/Streamline 的多帧能力上限，不直接改写 NGX 供应器；需兼容的外部 RTXMFG，且不得与 AdaMfgUnlock 同时开启。法环经 ERSS 5.1＋Streamline 2.14.1＋RTXMFG 1.3.3 Hotfix 2 单机验证；高倍率可能增加延迟。",
             "dlssg.adablackwellkernels" => "RTX 40 上尝试 Blackwell 内核路径；实验性。",
             "dlssnr.enabled" => "启用 DLSS 神经渲染；需要运行库、输入资源和硬件支持。",
             "dlssnr.transferstrength" => "模型画面混合强度：0 保留超分输出，1 使用模型结果；大于 1 会进一步强化。",

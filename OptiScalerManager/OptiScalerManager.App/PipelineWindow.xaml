@@ -1,0 +1,67 @@
+<ui:FluentWindow x:Class="OptiScalerManager.App.PipelineWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+        Title="渲染管线" Width="790" Height="680" MinWidth="670" MinHeight="570"
+        WindowStartupLocation="CenterOwner" Background="{StaticResource PageBackground}"
+        Foreground="{StaticResource TextPrimary}">
+    <Grid Margin="28">
+        <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+        <Grid Margin="0,0,0,16">
+            <StackPanel><TextBlock Text="渲染管线" FontSize="24" FontWeight="SemiBold"/><TextBlock Text="按游戏能力选择后端；安装文件前会检查冲突。" Foreground="{StaticResource TextSecondary}" Margin="0,6,0,0"/></StackPanel>
+            <Button Content="×" Style="{StaticResource WindowCloseButton}" HorizontalAlignment="Right" VerticalAlignment="Top" Click="CloseClick" AutomationProperties.Name="关闭渲染管线窗口"/>
+        </Grid>
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+        <StackPanel>
+            <TextBlock Text="Insert 菜单仍由实际运行的后端负责。" Foreground="{StaticResource TextSecondary}" TextWrapping="Wrap" Margin="0,0,0,20"/>
+            <Border Style="{StaticResource Card}" Margin="0,0,0,14"><StackPanel>
+                <TextBlock x:Name="GameTitle" FontSize="17" FontWeight="SemiBold"/>
+                <TextBlock x:Name="AdviceText" Foreground="{StaticResource TextSecondary}" TextWrapping="Wrap" Margin="0,8,0,0"/>
+                <TextBlock x:Name="PrerequisiteText" Foreground="{StaticResource Warning}" TextWrapping="Wrap" Margin="0,8,0,0"/>
+                <TextBlock x:Name="WarningText" Foreground="{StaticResource Warning}" TextWrapping="Wrap" Margin="0,8,0,0"/>
+                <Button Content="查看游戏／管线说明" Style="{StaticResource GhostButton}" HorizontalAlignment="Left" Click="GuideClick" Margin="0,12,0,0"/>
+            </StackPanel></Border>
+            <Border x:Name="EldenRingCard" Style="{StaticResource Card}" Margin="0,0,0,14" Visibility="Collapsed"><StackPanel>
+                <TextBlock Text="法环 · ERSS / Opti / RTXMFG 共存" FontSize="16" FontWeight="SemiBold"/>
+                <TextBlock Text="作者的 ERSS 需玩家自行取得；管理器不下载、不捆绑付费 DLL。先安装 ERSS 与游戏包 Opti，再从 RTXMFG 作者处取得 DLL。仅在离线且无反作弊时使用。" Foreground="{StaticResource TextSecondary}" TextWrapping="Wrap" Margin="0,8,0,8"/>
+                <TextBlock x:Name="EldenRingStatus" Foreground="{StaticResource TextSecondary}" TextWrapping="Wrap"/>
+                <TextBlock Text="“应用”将 Opti 设为仅扩展 ERSS Streamline 上限，关闭 Opti 自身的 AdaMfgUnlock，并把 ERSS 设为 3× 起点；“关闭”退回 2×。它们不会卸载 RTXMFG，也不能保证运行时倍率。修改前会备份，两次操作都要求退出游戏。" Foreground="{StaticResource TextSecondary}" TextWrapping="Wrap" Margin="0,9,0,8"/>
+                <WrapPanel>
+                    <Button Content="ERSS 作者页面" Style="{StaticResource GhostButton}" Click="ErssSourceClick" Margin="0,0,8,8"/>
+                    <Button Content="RTXMFG 下载页" Style="{StaticResource GhostButton}" Click="RtxMfgSourceClick" Margin="0,0,8,8"/>
+                    <Button Content="导入自备 RTXMFG.dll" Style="{StaticResource GhostButton}" Click="ImportRtxMfgClick" Margin="0,0,8,8"/>
+                    <Button Content="应用 3–6× 共存配置" Style="{StaticResource PrimaryButton}" Click="ApplyEldenRingClick" Margin="0,0,8,8"/>
+                    <Button Content="关闭高倍率解锁（2×）" Style="{StaticResource GhostButton}" Click="DisableEldenRingClick" Margin="0,0,8,8"/>
+                </WrapPanel>
+            </StackPanel></Border>
+            <Border Style="{StaticResource Card}" Margin="0,0,0,14"><StackPanel>
+                <TextBlock Text="01 · OptiScaler · 游戏内超分输入" FontSize="15" FontWeight="SemiBold"/>
+                <TextBlock Text="已有 DLSS／FSR／XeSS，或 ERSS-FG、SekiroTSR 等输入模组时优先使用。当前主界面的安装和配置仍负责这条管线。" Foreground="{StaticResource TextSecondary}" TextWrapping="Wrap" Margin="0,8,0,0"/>
+            </StackPanel></Border>
+            <Border Style="{StaticResource Card}" Margin="0,0,0,14"><StackPanel>
+                <TextBlock Text="02 · ReShade ＋ RenoDX／DLSS5 Bridge" FontSize="15" FontWeight="SemiBold"/>
+                <TextBlock Text="先用 ReShade 官网的 full add-on 安装器为游戏安装 ReShade。管理器会识别并保留已有 ReShade，只补装缺失的桥接、RenoDX 与 DLSS DLL；不同版本文件绝不覆盖。本机 BridgeComponents 已暂存四个组件。" Foreground="{StaticResource TextSecondary}" TextWrapping="Wrap" Margin="0,8,0,10"/>
+                <TextBlock x:Name="BridgeFolderText" Text="尚未选择组件文件夹" Foreground="{StaticResource TextSecondary}" TextTrimming="CharacterEllipsis"/>
+                <CheckBox x:Name="OfflineConfirmation" Content="我确认当前游戏以无反作弊的离线模式运行" Foreground="{StaticResource Warning}" Visibility="Collapsed" Margin="0,9,0,0"/>
+                <WrapPanel Margin="0,10,0,0">
+                    <Button x:Name="DownloadReshadeButton" Content="获取官方 ReShade" Style="{StaticResource GhostButton}" Click="DownloadReshadeClick" Margin="0,0,8,8"/>
+                    <Button x:Name="ChooseBridgeButton" Content="选择组件文件夹" Style="{StaticResource GhostButton}" Click="ChooseBridgeClick" Margin="0,0,8,8"/>
+                    <Button x:Name="InstallBridgeButton" Content="预览并安装" Style="{StaticResource PrimaryButton}" Click="InstallBridgeClick" Margin="0,0,8,8"/>
+                    <Button x:Name="UninstallBridgeButton" Content="卸载托管组件" Style="{StaticResource GhostButton}" Click="UninstallBridgeClick" Margin="0,0,8,8"/>
+                    <Button Content="桥接项目来源" Style="{StaticResource GhostButton}" Click="BridgeSourceClick" Margin="0,0,8,8"/>
+                </WrapPanel>
+            </StackPanel></Border>
+            <Border Style="{StaticResource Card}"><StackPanel>
+                <TextBlock Text="03 · SAOG Magpie · 窗口／视频后处理" FontSize="15" FontWeight="SemiBold"/>
+                <TextBlock Text="独立程序，不写入游戏目录。可抓取游戏、视频或互动影像窗口；实验性 NR／FG 不等于原生 DLSS-G 6×。下载的是 SAOG 仓库的预发布版。" Foreground="{StaticResource TextSecondary}" TextWrapping="Wrap" Margin="0,8,0,10"/>
+                <WrapPanel>
+                    <Button Content="下载 SAOG 实验版" Style="{StaticResource PrimaryButton}" Click="DownloadMagpieClick" Margin="0,0,8,8"/>
+                    <Button Content="启动 Magpie" Style="{StaticResource GhostButton}" Click="LaunchMagpieClick" Margin="0,0,8,8"/>
+                    <Button Content="查看来源" Style="{StaticResource GhostButton}" Click="MagpieSourceClick" Margin="0,0,8,8"/>
+                </WrapPanel>
+            </StackPanel></Border>
+            <TextBlock x:Name="ResultText" Foreground="{StaticResource TextSecondary}" TextWrapping="Wrap" Margin="0,16,0,0"/>
+        </StackPanel>
+    </ScrollViewer>
+    </Grid>
+</ui:FluentWindow>

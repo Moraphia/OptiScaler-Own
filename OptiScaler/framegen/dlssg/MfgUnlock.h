@@ -65,6 +65,10 @@ bool AnyModuleSeen();
 void TryApply();
 void TryApply(HMODULE module);
 
+// Experimental, separate from TryApply: removes only the Streamline 2.14.1 wrapper clamp.
+// This does not patch NGX or make higher multipliers usable by itself.
+void TryApplyStreamline(HMODULE module);
+
 // How many distinct module handles have completed patching (0 when none seen yet).
 size_t PatchedModuleCount();
 

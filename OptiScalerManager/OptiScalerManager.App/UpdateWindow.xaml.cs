@@ -8,7 +8,7 @@ using OptiScalerManager.Core;
 
 namespace OptiScalerManager.App;
 
-public partial class UpdateWindow : Window
+public partial class UpdateWindow : Wpf.Ui.Controls.FluentWindow
 {
     private ReleaseService _releases;
     private string? _ownRepository = "Moraphia/OptiScaler-Own";
@@ -45,14 +45,18 @@ public partial class UpdateWindow : Window
         try
         {
             var inventory = await DependencyInventoryService.LoadAsync(Path.Combine(root, "dependency-inventory.json"));
-            InventorySummary.Text = $"正式游戏包 v{inventory.PackageVersion} · DLL {inventory.Files.Count} 个 · 包 SHA-256 {inventory.PackageSha256}";
-            RuntimeGrid.ItemsSource = inventory.Files;
+            var comparisons = await DependencyInventoryService.CompareLocalPackageAsync(inventory, Path.Combine(root, "Package"));
+            InventorySummary.Text = $"正式游戏包 v{inventory.PackageVersion} 快照：{inventory.Files.Count} 个 DLL · 本机 Package 一致 {comparisons.Count(x => x.LocalStatus == "一致")}／不同 {comparisons.Count(x => x.LocalStatus == "与快照不同")}／缺失 {comparisons.Count(x => x.LocalStatus == "缺失")}。快照包 SHA-256：{inventory.PackageSha256}";
+            RuntimeGrid.ItemsSource = comparisons;
             var submodules = await DependencyInventoryService.LoadSubmodulesAsync(Path.Combine(root, "source-submodules.json"));
             SubmoduleSummary.Text = $"源码 Git 子模块 {submodules.Count} 个；这里的 commit 是构建所用 gitlink，不是上游最新版本。";
             SubmoduleGrid.ItemsSource = submodules;
             var upstreams = await new UpstreamService().LoadMatrixAsync(Path.Combine(root, "upstreams.json"), Path.Combine(root, "upstreams.lock.json"));
             UpstreamSummary.Text = $"外部追踪 {upstreams.Count} 项；记录版本不是包内 DLL 版本，未标时间的记录不能判定是否有更新。";
             DependencyGrid.ItemsSource = upstreams;
+            var pipelineRows = await DependencyInventoryService.LoadPipelineAsync(Path.Combine(root, "pipeline-dependencies.json"));
+            PipelineDependencySummary.Text = $"渲染管线额外前置 {pipelineRows.Count} 项。它们不是正式游戏包内的 28 个 DLL；记录版本不代表本机已安装或已验证运行。";
+            PipelineDependencyGrid.ItemsSource = pipelineRows;
         }
         catch (Exception ex) { InventorySummary.Text = $"依赖清单加载失败：{ex.Message}"; }
     }

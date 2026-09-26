@@ -15,5 +15,6 @@
   <ItemGroup>
     <None Include="..\OptiScalerManager.App\dependency-inventory.json" Link="dependency-inventory.json" CopyToOutputDirectory="PreserveNewest" />
     <None Include="..\OptiScalerManager.App\source-submodules.json" Link="source-submodules.json" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\OptiScalerManager.App\pipeline-dependencies.json" Link="pipeline-dependencies.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>

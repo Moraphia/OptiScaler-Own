@@ -57,7 +57,8 @@ public sealed class OperationResult
     public static OperationResult Fail(string message, params string[] errors) => new() { Message = message, Errors = errors };
 }
 
-public sealed record InstallOptions(string PackageDirectory, string ProxyDll, bool SyncRuntimes = true);
+public sealed record InstallOptions(string PackageDirectory, string ProxyDll, bool SyncRuntimes = true,
+    IReadOnlyList<ConfigChange>? IniOverrides = null);
 
 public sealed record FilePlanEntry(string Source, string Destination, bool WillBackup, string? ExistingSha256);
 

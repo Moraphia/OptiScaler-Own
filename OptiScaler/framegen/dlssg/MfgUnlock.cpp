@@ -351,6 +351,49 @@ static std::wstring ModulePath(HMODULE module)
     return GetModuleFileNameW(module, path, MAX_PATH) != 0 ? std::wstring(path) : std::wstring(L"?");
 }
 
+void MfgUnlock::TryApplyStreamline(HMODULE module)
+{
+    if (!Config::Instance()->FGDLSSGAdaMfgWrapperOnly.value_or_default() || module == nullptr)
+        return;
+
+    const std::wstring path = ModulePath(module);
+    const wchar_t* basename = wcsrchr(path.c_str(), L'\\');
+    basename = basename != nullptr ? basename + 1 : path.c_str();
+    if (_wcsicmp(basename, L"sl.dlss_g.dll") != 0 || ModuleVersion(module) != "2.14.1")
+    {
+        LOG_WARN("MFG wrapper-only: unsupported Streamline module ({})", wstring_to_string(path));
+        return;
+    }
+
+    // Version-resource APIs can load system DLLs; do not hold this mutex across them.
+    static std::mutex wrapperMutex;
+    std::lock_guard<std::mutex> lock(wrapperMutex);
+
+    // Streamline 2.14.1: mov edx,5; cmp edx,ecx; cmovb edx,ecx. The cmovb clamps
+    // its compiled five-frame ceiling to NGX's unmodified Ada report of one. This
+    // experiment changes only the conditional move, not NGX or any DLL on disk.
+    // The signature is consistent with dashdogy/RTX40MFG-Unlock (MIT).
+    constexpr std::string_view original = "BA 05 00 00 00 3B CA 0F 42 D1";
+    constexpr std::string_view patched = "BA 05 00 00 00 3B CA 90 90 90";
+    const auto at = scanner::GetAddress(module, original);
+    const auto already = scanner::GetAddress(module, patched);
+    const auto match = at != 0 ? at : already;
+    if (match == 0 || (at != 0 && already != 0) ||
+        scanner::GetAddress(module, at != 0 ? original : patched, 0, match + 1) != 0)
+    {
+        LOG_WARN("MFG wrapper-only: signature absent or ambiguous ({})", wstring_to_string(path));
+        return;
+    }
+
+    if (already != 0)
+        return;
+
+    const uint8_t nop[] = { 0x90, 0x90, 0x90 };
+    if (WriteBytes(at + 7, nop, sizeof(nop)))
+        LOG_INFO("MFG wrapper-only: Streamline 2.14.1 ceiling opened at {:X} ({})", at,
+                 wstring_to_string(path));
+}
+
 void MfgUnlock::TryApply(HMODULE module)
 {
     if (!Config::Instance()->FGDLSSGAdaMfgUnlock.value_or_default() || module == nullptr)

@@ -1,9 +1,10 @@
-<Window x:Class="OptiScalerManager.App.ConfigWindow"
+<ui:FluentWindow x:Class="OptiScalerManager.App.ConfigWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
         Title="OptiScaler 配置" Width="1040" Height="760" MinWidth="820" MinHeight="560"
         WindowStartupLocation="CenterOwner" Background="{StaticResource PageBackground}" Foreground="{StaticResource TextPrimary}" FontFamily="Segoe UI Variable Text, Segoe UI">
-    <Window.Resources>
+    <ui:FluentWindow.Resources>
         <Style x:Key="ExpertPresetMenu" TargetType="ContextMenu">
             <Setter Property="Background" Value="{StaticResource PanelBackground}"/>
             <Setter Property="Foreground" Value="{StaticResource TextPrimary}"/>
@@ -28,18 +29,20 @@
                         </Grid>
                     </Border>
                     <ControlTemplate.Triggers>
-                        <Trigger Property="IsHighlighted" Value="True"><Setter TargetName="ItemBorder" Property="Background" Value="#303841"/></Trigger>
+                        <Trigger Property="IsHighlighted" Value="True"><Setter TargetName="ItemBorder" Property="Background" Value="#EAF1FC"/></Trigger>
                         <Trigger Property="IsChecked" Value="True"><Setter TargetName="CheckMark" Property="Visibility" Value="Visible"/></Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate></Setter.Value>
             </Setter>
         </Style>
-    </Window.Resources>
+    </ui:FluentWindow.Resources>
     <Grid Margin="28">
         <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
         <Grid Grid.Row="0" Margin="0,0,0,18">
-            <StackPanel><TextBlock Text="OptiScaler 配置" FontSize="27" FontWeight="SemiBold"/><TextBlock x:Name="GamePath" Foreground="{StaticResource TextSecondary}" Margin="0,4,0,0"/></StackPanel>
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right"><ComboBox x:Name="SnapshotBox" Width="190" Height="34" Margin="0,0,8,0" VerticalContentAlignment="Center" DisplayMemberPath="Description"/><Button Style="{StaticResource GhostButton}" Content="恢复快照" Click="RestoreSnapshotClick" Margin="0,0,8,0"/><Button Style="{StaticResource GhostButton}" Content="创建快照" Click="SnapshotClick" Margin="0,0,8,0"/><Button Style="{StaticResource PrimaryButton}" Content="保存设置" Click="SaveClick"/></StackPanel>
+            <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+            <StackPanel Margin="0,0,48,0"><TextBlock Text="OptiScaler 配置" FontSize="27" FontWeight="SemiBold"/><TextBlock x:Name="GamePath" Foreground="{StaticResource TextSecondary}" Margin="0,4,0,0" TextTrimming="CharacterEllipsis"/></StackPanel>
+            <Button Style="{StaticResource WindowCloseButton}" Content="×" HorizontalAlignment="Right" VerticalAlignment="Top" Click="CloseClick" AutomationProperties.Name="关闭配置窗口" />
+            <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,16,0,0"><ComboBox x:Name="SnapshotBox" Width="190" Height="34" Margin="0,0,8,0" VerticalContentAlignment="Center" DisplayMemberPath="Description"/><Button Style="{StaticResource GhostButton}" Content="恢复快照" Click="RestoreSnapshotClick" Margin="0,0,8,0"/><Button Style="{StaticResource GhostButton}" Content="创建快照" Click="SnapshotClick" Margin="0,0,8,0"/><Button Style="{StaticResource PrimaryButton}" Content="保存设置" Click="SaveClick"/></StackPanel>
         </Grid>
         <TabControl x:Name="ConfigTabs" Grid.Row="1" Background="Transparent" BorderThickness="0">
             <TabItem Header="常用设置" Padding="14,8">
@@ -57,8 +60,10 @@
                         <TextBlock Text="RTX 40 多帧生成（实验性）" FontSize="17" FontWeight="SemiBold" Margin="0,10,0,12"/>
                         <UniformGrid Columns="2">
                             <StackPanel Margin="0,0,18,10"><TextBlock Text="AdaMfgUnlock"/><ComboBox x:Name="AdaUnlockBox"><ComboBoxItem Content="auto"/><ComboBoxItem Content="false"/><ComboBoxItem Content="true"/></ComboBox></StackPanel>
+                            <StackPanel Margin="0,0,18,10"><TextBlock Text="ERSS 共存：AdaMfgWrapperOnly"/><ComboBox x:Name="AdaWrapperBox"><ComboBoxItem Content="auto"/><ComboBoxItem Content="false"/><ComboBoxItem Content="true"/></ComboBox></StackPanel>
                             <StackPanel Margin="0,0,18,10"><TextBlock Text="AdaBlackwellKernels"/><ComboBox x:Name="BlackwellKernelsBox"><ComboBoxItem Content="auto"/><ComboBoxItem Content="false"/><ComboBoxItem Content="true"/></ComboBox></StackPanel>
                         </UniformGrid>
+                        <TextBlock Text="ERSS＋RTXMFG 的法环方案请在“渲染管线”使用专属开关；它会保持 AdaMfgUnlock=false，避免两个提供者同时改写。这里只编辑 Opti INI，不能单独安装 ERSS 或 RTXMFG。" TextWrapping="Wrap" Foreground="{StaticResource TextSecondary}" Margin="0,2,0,10"/>
                         <TextBlock Text="DLSS Neural Rendering（实验性，需运行库和游戏支持）" FontSize="17" FontWeight="SemiBold" Margin="0,10,0,12"/>
                         <UniformGrid Columns="2">
                             <StackPanel Margin="0,0,18,10"><TextBlock Text="启用神经渲染"/><ComboBox x:Name="NrBox"><ComboBoxItem Content="auto"/><ComboBoxItem Content="false"/><ComboBoxItem Content="true"/></ComboBox></StackPanel>
@@ -81,17 +86,15 @@
                         <TextBox x:Name="ExpertSearchBox" Grid.Column="1" Height="34" TextChanged="ExpertSearchChanged" VerticalContentAlignment="Center" />
                     </Grid>
                     <DataGrid x:Name="EntriesGrid" Grid.Row="2" AutoGenerateColumns="False" CanUserAddRows="False" HeadersVisibility="Column" SelectionChanged="ExpertSelectionChanged"
+                              EnableRowVirtualization="True" VirtualizingPanel.IsVirtualizing="True" VirtualizingPanel.VirtualizationMode="Recycling" ScrollViewer.CanContentScroll="True" ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                              RowHeight="42" ColumnHeaderHeight="36" MinColumnWidth="90"
                               Background="{StaticResource PanelBackground}" BorderBrush="{StaticResource PanelBorder}" Foreground="{StaticResource TextPrimary}"
-                              RowBackground="#1B1E23" AlternatingRowBackground="#20242A" GridLinesVisibility="Horizontal">
-                        <DataGrid.GroupStyle>
-                            <GroupStyle>
-                                <GroupStyle.HeaderTemplate><DataTemplate><Border Background="#29323B" Padding="10,7" Margin="0,8,0,2"><TextBlock Text="{Binding Name}" Foreground="{StaticResource TextPrimary}" FontWeight="SemiBold"/></Border></DataTemplate></GroupStyle.HeaderTemplate>
-                            </GroupStyle>
-                        </DataGrid.GroupStyle>
+                              RowBackground="#FFFFFF" AlternatingRowBackground="#F6F8FB" GridLinesVisibility="Horizontal">
                         <DataGrid.Columns>
-                            <DataGridTextColumn Header="配置项" Binding="{Binding Key}" IsReadOnly="True" Width="220"/>
-                            <DataGridTextColumn Header="说明" Binding="{Binding Description}" IsReadOnly="True" Width="*"/>
-                            <DataGridTemplateColumn Header="值（可选或输入）" Width="230">
+                            <DataGridTextColumn Header="分类" Binding="{Binding Category}" IsReadOnly="True" Width="180"/>
+                            <DataGridTextColumn Header="配置项" Binding="{Binding Key}" IsReadOnly="True" Width="190"/>
+                            <DataGridTextColumn Header="说明" Binding="{Binding Description}" IsReadOnly="True" Width="*" MinWidth="230"/>
+                            <DataGridTemplateColumn Header="值（可选或输入）" Width="235">
                                 <DataGridTemplateColumn.CellTemplate><DataTemplate>
                                     <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
                                         <TextBox Text="{Binding Value, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Height="30" VerticalContentAlignment="Center" ToolTip="直接输入原始 INI 值；auto 表示使用程序默认值" />
@@ -112,4 +115,4 @@
         </TabControl>
         <TextBlock x:Name="StatusText" Grid.Row="2" Foreground="{StaticResource TextSecondary}" VerticalAlignment="Center" Margin="0,18,0,0"/>
     </Grid>
-</Window>
+</ui:FluentWindow>

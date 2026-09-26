@@ -39,7 +39,12 @@ public sealed class SteamDiscoveryService : IGameDiscoveryService
                     var relative = Match(text, "installdir");
                     if (relative is null) continue;
                     var gamePath = Path.Combine(library, "steamapps", "common", relative);
-                    if (Directory.Exists(gamePath)) result.Add(new GameCandidate(name, gamePath, FindExecutable(gamePath), "Steam"));
+                    if (Directory.Exists(gamePath))
+                    {
+                        var knownExe = KnownGamePathResolver.FindExecutable(gamePath);
+                        var target = knownExe is null ? gamePath : Path.GetDirectoryName(knownExe)!;
+                        result.Add(new GameCandidate(name, target, knownExe ?? FindExecutable(target), "Steam"));
+                    }
                 }
             }
         }
